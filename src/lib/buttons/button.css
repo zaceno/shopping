@@ -19,6 +19,7 @@
   line-height: 0;
   padding: 1em;
   cursor: pointer;
+  touch-action: none;
 }
 
 .button:active,

@@ -1,9 +1,12 @@
 import "./button.css"
-import { type Action, type ClassProp, type MaybeVNode } from "hyperapp"
-import { withPreventDefault, MaybeReadonlyTuple } from "@/lib/event-decorators"
+import { type ClassProp, type MaybeVNode } from "hyperapp"
+import {
+  withPreventDefault,
+  type ValidEventAction,
+} from "@/lib/event-decorators"
 
 export type ButtonProps<S, X> = {
-  onclick: Action<S, any> | MaybeReadonlyTuple<Action<S, X>, X>
+  onclick: X & ValidEventAction<S, X>
   class?: ClassProp
   disabled?: boolean
   active?: boolean

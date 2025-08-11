@@ -1,181 +1,134 @@
 import { type Dispatch, type Action } from "hyperapp"
 
-type DNDOptions<S> = {
-  selector: string
-  onOver: Action<S, { dragged: HTMLElement; over: HTMLElement }>
+type DragStartEffectOptions<S> = {
+  event: MouseEvent | TouchEvent
+  onOver: Action<S, { draggedID: string; overID: string }>
 }
 
-type OnOverHandler = (d1: HTMLElement, d2: HTMLElement) => void
+const dragStartEffect = <S>(
+  dispatch: Dispatch<S>,
+  options: DragStartEffectOptions<S>,
+) => {
+  // start keeping track of the elements we can drop on
+  const elements = [
+    ...document.querySelectorAll("[data-dndid]"),
+  ] as HTMLElement[]
 
-class DragNDrop {
-  handleOver: OnOverHandler
-  teardown: () => void = () => {}
-  draggableElements: HTMLElement[] = []
-  dragging: HTMLElement | null = null
-  currentX: number = 0
-  currentY: number = 0
-  currentOver: HTMLElement | undefined
+  // mark the handle as the handle
+  const handle = options.event.currentTarget as HTMLElement
+  handle.style.touchAction = "none"
+  handle.dataset.dndcurrentdraghandle = "true"
 
-  startTop: number = 0
-  startLeft: number = 0
-  grabOffsetX: number = 0
-  grabOffsetY: number = 0
-  checkFrame: number = 0
-  layoutFrame: number = 0
+  // find the element to drag, from the handle
+  const dragged = document.querySelector(
+    "[data-dndid]:has([data-dndcurrentdraghandle])",
+  ) as HTMLElement
 
-  constructor(draggableSelector: string, onOver: OnOverHandler) {
-    this.handleOver = onOver
-    this.draggableElements = [
-      ...document.querySelectorAll(draggableSelector),
-    ] as HTMLElement[]
+  dragged.dataset.dndcurrentdragged = "true"
 
-    const mouseDownHandler = (ev: MouseEvent) => {
-      ev.preventDefault()
-      this.startDragHandler(
-        ev.currentTarget as HTMLElement,
-        ev.clientX,
-        ev.clientY,
-      )
-    }
+  // set the initial tracking data based on the dragged element's
+  // position and the pointer position when event occurred.
+  const { clientX, clientY } =
+    "touches" in options.event ? options.event.touches[0] : options.event
+  const { top, left } = dragged.getBoundingClientRect()
+  let startTop = top
+  let startLeft = left
+  let grabOffsetX = clientX - left
+  let grabOffsetY = clientY - top
+  let currentX = clientX
+  let currentY = clientY
 
-    const touchStartHandler = (ev: TouchEvent) => {
-      this.startDragHandler(
-        ev.currentTarget as HTMLElement,
-        ev.touches[0].clientX,
-        ev.touches[0].clientY,
-      )
-    }
+  // call this when drag moves
+  let checkframe: number = 0 //use to debounce checking if we are over
+  let currentover: HTMLElement | undefined = undefined //use to only handle dragover once per elem
+  const dragMoveHandler = (x: number, y: number) => {
+    //update tracked position and transform dragged position
+    currentX = x
+    currentY = y
+    const tx = x - startLeft - grabOffsetX
+    const ty = y - startTop - grabOffsetY
+    dragged.style.transform = `translate(${tx}px, ${ty}px)`
 
-    const mouseMoveHandler = (ev: MouseEvent) => {
-      ev.preventDefault()
-      this.dragMoveHandler(ev.clientX, ev.clientY)
-    }
-
-    const touchMoveHandler = (ev: TouchEvent) => {
-      this.dragMoveHandler(ev.touches[0].clientX, ev.touches[0].clientY)
-    }
-
-    const touchEndHandler = () => {
-      this.dragStopHandler()
-    }
-    const mouseUpHandler = () => {
-      this.dragStopHandler()
-    }
-
-    this.draggableElements.forEach(el => {
-      el.style.touchAction = "none"
-      el.addEventListener("mousedown", mouseDownHandler)
-      el.addEventListener("touchstart", touchStartHandler, { passive: true })
-    })
-    window.addEventListener("mouseup", mouseUpHandler)
-    window.addEventListener("touchend", touchEndHandler, { passive: true })
-    window.addEventListener("mousemove", mouseMoveHandler)
-    window.addEventListener("touchmove", touchMoveHandler, { passive: true })
-
-    this.teardown = () => {
-      this.draggableElements.forEach(el => {
-        el.style.touchAction = "auto"
-        el.removeEventListener("mousedown", mouseDownHandler)
-        el.removeEventListener("touchstart", touchStartHandler)
+    // see if we are over another element, and if so
+    // handle it and
+    if (checkframe) cancelAnimationFrame(checkframe)
+    checkframe = requestAnimationFrame(() => {
+      let nowOver = elements.find(el => {
+        if (el === dragged) return false
+        let rect = el.getBoundingClientRect()
+        return (
+          currentX > rect.left &&
+          currentX <= rect.right &&
+          currentY > rect.top &&
+          currentY <= rect.bottom
+        )
       })
-      window.removeEventListener("mouseup", mouseUpHandler)
-      window.removeEventListener("touchend", touchEndHandler)
-      window.removeEventListener("mousemove", mouseMoveHandler)
-      window.removeEventListener("touchmove", touchMoveHandler)
-    }
-  }
-
-  startDragHandler(elem: HTMLElement, posX: number, posY: number) {
-    this.dragging = elem
-    elem.setAttribute("data-dnd-dragging", "dragging")
-    const { top, left } = elem.getBoundingClientRect()
-    this.startTop = top
-    this.startLeft = left
-    this.grabOffsetX = posX - left
-    this.grabOffsetY = posY - top
-    this.currentX = posX
-    this.currentY = posY
-  }
-
-  dragMoveHandler(posX: number, posY: number) {
-    if (!this.dragging) return
-    this.currentX = posX
-    this.currentY = posY
-    const tx = posX - this.startLeft - this.grabOffsetX
-    const ty = posY - this.startTop - this.grabOffsetY
-    this.dragging.style.transform = `translate(${tx}px, ${ty}px)`
-    if (this.checkFrame) cancelAnimationFrame(this.checkFrame)
-    this.checkFrame = requestAnimationFrame(() => {
-      this.checkIfOver()
+      if (nowOver !== currentover) {
+        currentover = nowOver
+        if (nowOver) {
+          //handle the fact we are over a new element
+          //dispatch the requested action for going over an element
+          dispatch(options.onOver, {
+            draggedID: dragged.dataset.dndid,
+            overID: nowOver.dataset.dndid,
+          })
+          //wait for eventual rerender, then update the tracking data for new layout
+          requestAnimationFrame(() => {
+            dragged.style.transform = ""
+            const rect = dragged.getBoundingClientRect()
+            startTop = rect.top
+            startLeft = rect.left
+            const tx = currentX - startLeft - grabOffsetX
+            const ty = currentY - startTop - grabOffsetY
+            dragged.style.transform = `translate(${tx}px, ${ty}px)`
+          })
+        }
+      }
     })
   }
 
-  checkIfOver() {
-    if (!this.dragging) return
-    let nowOver = this.draggableElements.find(el => {
-      if (el === this.dragging) return false
-      let rect = el.getBoundingClientRect()
-      return (
-        this.currentX > rect.left &&
-        this.currentX <= rect.right &&
-        this.currentY > rect.top &&
-        this.currentY <= rect.bottom
-      )
-    })
-    if (nowOver !== this.currentOver) {
-      this.currentOver = nowOver
-      nowOver && this.handleOver(this.dragging, nowOver)
-    }
+  const dragStopHandler = () => {
+    delete handle.dataset.dndcurrentdraghandle
+    dragged.style.transform = ""
+    delete dragged.dataset.dndcurrentdragged
+    window.removeEventListener("mouseup", mouseUpHandler)
+    window.removeEventListener("touchend", touchEndHandler)
+    window.removeEventListener("mousemove", mouseMoveHandler)
+    window.removeEventListener("touchmove", touchMoveHandler)
   }
 
-  dragStopHandler() {
-    if (!this.dragging) return
-    this.dragging.removeAttribute("data-dnd-dragging")
-    this.dragging.style.transform = ""
-    this.dragging = null
+  const mouseMoveHandler = (ev: MouseEvent) => {
+    ev.preventDefault()
+    dragMoveHandler(ev.clientX, ev.clientY)
   }
 
-  updateLayout() {
-    if (this.layoutFrame) cancelAnimationFrame(this.layoutFrame)
-    this.layoutFrame = requestAnimationFrame(() => {
-      if (!this.dragging) return
-      this.dragging.style.transform = ""
-      const rect = this.dragging.getBoundingClientRect()
-      this.startTop = rect.top
-      this.startLeft = rect.left
-      const tx = this.currentX - this.startLeft - this.grabOffsetX
-      const ty = this.currentY - this.startTop - this.grabOffsetY
-      this.dragging.style.transform = `translate(${tx}px, ${ty}px)`
-    })
+  const touchMoveHandler = (ev: TouchEvent) => {
+    dragMoveHandler(ev.touches[0].clientX, ev.touches[0].clientY)
   }
+
+  const touchEndHandler = () => {
+    dragStopHandler()
+  }
+  const mouseUpHandler = () => {
+    dragStopHandler()
+  }
+
+  window.addEventListener("mouseup", mouseUpHandler)
+  window.addEventListener("touchend", touchEndHandler, { passive: true })
+  window.addEventListener("mousemove", mouseMoveHandler)
+  window.addEventListener("touchmove", touchMoveHandler, { passive: true })
 }
 
-let singleton: DragNDrop | null = null
-
-export const dndNotifyLayout = () => {
-  if (singleton) {
-    singleton.updateLayout()
-  }
-}
-
-export const dragndrop = <S>(dispatch: Dispatch<S>, options: DNDOptions<S>) => {
-  const onOver: OnOverHandler = (dragged, over) => {
-    dispatch(options.onOver, { dragged, over })
-  }
-  //subscriptions are started before new view rendering
-  //is scheduled. So we need to wait two frames. One for
-  //the new render to be scheduled, and the second until
-  //the new render is completed. That way we can be sure
-  //the draggable-selectors will be present in the DOM
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      singleton = new DragNDrop(options.selector, onOver)
-    })
-  })
-  return () => {
-    if (singleton) {
-      singleton.teardown()
-      singleton = null
-    }
-  }
-}
+export const withOnOverDragStart =
+  <S>(onOver: DragStartEffectOptions<S>["onOver"]): Action<S, Event> =>
+  (state, event) =>
+    [
+      state,
+      [
+        dragStartEffect<S>,
+        {
+          event,
+          onOver,
+        },
+      ],
+    ]

@@ -1,5 +1,5 @@
 import { type State, listItems } from "@/main"
-import { Item, ReorderableItem } from "./item"
+import { Item } from "./item"
 import { ListView } from "@/lib/listview/listview"
 
 export function ItemList(state: State) {
@@ -7,18 +7,15 @@ export function ItemList(state: State) {
     <ListView
       animated={state.mode === "normal"}
       items={listItems(state)}
-      render={item =>
-        state.mode === "reorder" ? (
-          <ReorderableItem id={item.id} text={item.name} done={item.done > 0} />
-        ) : (
-          <Item
-            id={item.id}
-            text={item.name}
-            done={item.done > 0}
-            editing={item.id === state.editing}
-          />
-        )
-      }
+      render={item => (
+        <Item
+          id={item.id}
+          text={item.name}
+          done={item.done > 0}
+          editing={item.id === state.editing}
+          mode={state.mode}
+        />
+      )}
     />
   )
 }

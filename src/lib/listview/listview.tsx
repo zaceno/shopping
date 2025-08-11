@@ -22,13 +22,14 @@ export type ListViewItemType<S> = ElementVNode<S> & ListViewItemBrand
 export type ListViewItemProps = {
   key: string
   class?: ClassProp
+  [key: `data-${string}`]: string
 }
 export function ListViewItem<S>(
   props: ListViewItemProps,
   content: MaybeVNode<S> | MaybeVNode<S>[],
 ) {
   return (
-    <li key={props.key} class={["listview__item", props.class]}>
+    <li {...props} key={props.key} class={["listview__item", props.class]}>
       {content}
     </li>
   ) as ListViewItemType<S>

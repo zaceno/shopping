@@ -1,6 +1,5 @@
-import { type Action as HpAction, ElementVNode } from "hyperapp"
+import { type Action as HpAction } from "hyperapp"
 import focuser from "@/lib/focuser"
-import { dndNotifyLayout, dragndrop, DNDoptions } from "./lib/dragndrop"
 export type Action<P = any> = HpAction<State, P>
 import * as Items from "@/data/items"
 
@@ -81,47 +80,17 @@ export const countDone = (state: State) => Items.countDone(state.items)
 
 export const listItems = (state: State) => Items.displayList(state.items)
 
-export const makeDragReorderable = <E extends ElementVNode<State>>(
-  id: ItemID,
-  node: E,
-) => {
-  return {
-    ...node,
-    props: {
-      ...node.props,
-      "data-app-item-id": id,
-      class:
-        (node.props.class ? node.props.class + " " : "") + "drag-reorderable",
-    },
-  } as E
-}
-
-const DragOver: Action<{ dragged: HTMLElement; over: HTMLElement }> = (
+export const DragOver: Action<{ draggedID: ItemID; overID: ItemID }> = (
   state,
-  { dragged, over },
+  { draggedID, overID },
 ) => {
   if (state.mode !== "reorder") return state
-  const draggedID = dragged.dataset.appItemId
-  const overID = over.dataset.appItemId
-  if (!draggedID) throw new Error("ID for dragged element missing")
-  if (!overID) throw new Error("ID for dragged-to element missing")
-  return [
-    {
-      ...state,
-      items: Items.moveItemTo(
-        state.items,
-        draggedID as ItemID,
-        overID as ItemID,
-      ),
-    },
-    dndNotifyLayout,
-  ]
+  return {
+    ...state,
+    items: Items.moveItemTo(state.items, draggedID, overID),
+  }
 }
 
-export const subscriptions = (state: State) =>
-  [
-    state.mode === "reorder" && [
-      dragndrop,
-      { selector: ".drag-reorderable", onOver: DragOver },
-    ],
-  ] as const
+export const subscriptions = (_state: State) => [
+  // state.mode === "reorder" && [dragndrop, { onOver: DragOver }]
+]
