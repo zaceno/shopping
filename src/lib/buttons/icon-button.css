@@ -1,0 +1,14 @@
+:root {
+  --icon-button-filter-dark: drop-shadow(0 -1px 0px #00000044);
+  --icon-button-filter: var(--icon-button-filter);
+}
+
+.button.icon-button {
+  font-size: 1rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  & .icon {
+    filter: var(--icon-button-filter);
+  }
+}

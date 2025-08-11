@@ -1,0 +1,16 @@
+:root {
+  /*
+    By default, icon size matches local font-size
+    but it can alsoo be overridden by setting 
+    the --icon-size variable.
+  */
+  --icon-size: 1em;
+}
+
+.icon {
+  display: inline-block;
+  height: var(--icon-size);
+  width: var(--icon-size);
+  fill: currentColor;
+  stroke: none;
+}

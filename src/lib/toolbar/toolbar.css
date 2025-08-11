@@ -1,0 +1,123 @@
+.toolbar {
+  --toolbar-background-blue: linear-gradient(
+    rgb(24, 103, 228),
+    rgb(54, 120, 226) 30%,
+    rgb(37, 105, 214) 50%,
+    rgb(0, 58, 151)
+  );
+  --toolbar-background-extrablue: linear-gradient(
+    rgb(57, 131, 248),
+    rgb(84, 145, 242) 30%,
+    rgb(67, 134, 243) 50%,
+    rgb(26, 88, 187)
+  );
+
+  --toolbar-background-red: linear-gradient(
+    rgb(228, 24, 24),
+    rgb(226, 54, 54) 30%,
+    rgb(214, 37, 37) 50%,
+    rgb(151, 0, 0)
+  );
+
+  --toolbar-background-extrared: linear-gradient(
+    rgb(248, 57, 57),
+    rgb(242, 84, 84) 30%,
+    rgb(243, 67, 67) 50%,
+    rgb(187, 26, 26)
+  );
+
+  --toolbar-background-green: linear-gradient(
+    rgb(62, 199, 10),
+    rgb(75, 219, 20) 30%,
+    rgb(65, 200, 14) 50%,
+    rgb(31, 111, 0)
+  );
+
+  --toolbar-background-extragreen: linear-gradient(
+    rgb(85, 233, 29),
+    rgb(89, 235, 33) 30%,
+    rgb(77, 214, 24) 50%,
+    rgb(47, 149, 7)
+  );
+
+  --toolbar-background-gray: linear-gradient(
+    rgb(141, 141, 141),
+    rgb(170, 170, 170) 30%,
+    rgb(150, 150, 150) 50%,
+    rgb(73, 73, 73)
+  );
+
+  --toolbar-background: var(--toolbar-background-blue);
+  --toolbar-button-background: var(--toolbar-background-blue);
+  --toolbar-button-active-background: var(--toolbar-background-extrablue);
+
+  background: var(--toolbar-background);
+  width: 100%;
+  display: flex;
+}
+
+.toolbar__spacer {
+  flex-grow: 1;
+}
+
+.toolbar__button {
+  position: relative;
+  cursor: pointer;
+  background: var(--toolbar-button-background);
+  flex: 0 0 4.5rem;
+  border: none;
+  border-left: 1px #ffffff2b solid;
+  border-right: 1px #00000031 solid;
+  &:first-child {
+    border-left: none;
+  }
+  &:last-child {
+    border-right: none;
+  }
+
+  color: #fff;
+  font-size: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  & .icon {
+    filter: drop-shadow(0 -1px 0px #00000044);
+  }
+}
+
+.toolbar__button.toolbar__button--active,
+.toolbar__button:active {
+  background: var(--toolbar-button-active-background);
+  border-color: transparent;
+}
+.toolbar__button.toolbar__button--red {
+  --toolbar-button-background: var(--toolbar-background-red);
+  --toolbar-button-active-background: var(--toolbar-background-extrared);
+}
+.toolbar__button.toolbar__button--green {
+  --toolbar-button-background: var(--toolbar-background-green);
+  --toolbar-button-active-background: var(--toolbar-background-extragreen);
+}
+
+.toolbar__button:disabled {
+  --toolbar-button-background: var(--toolbar-background-gray);
+  --toolbar-button-active-background: var(--toolbar-background-gray);
+  cursor: not-allowed;
+}
+
+.toolbar__button-text {
+  font-size: 0.75rem;
+}
+
+.toolbar__button-alerts {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.3rem;
+  font-size: 0.7rem;
+  background: rgb(211, 29, 29);
+  padding: 0.1rem 0.3rem;
+  border-radius: 1rem;
+  text-shadow: 0 -1px 0px #00000055;
+}

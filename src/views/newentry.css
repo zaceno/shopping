@@ -1,0 +1,32 @@
+.newentry {
+  box-sizing: border-box;
+  width: 100%;
+  background: rgb(245, 228, 196);
+  padding: 1rem 0.8rem;
+  padding-left: 3.3rem;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  position: relative;
+  z-index: 2000;
+  border-bottom: rgb(202, 173, 118) solid 1px;
+  box-shadow: 0 0px 7px #00000055;
+}
+
+.newentry__input {
+  border: none;
+  flex: 1 1 auto;
+  color: rgb(75, 75, 75);
+  font-family: Arial, sans-serif;
+  font-size: 1.2rem;
+  line-height: 2rem;
+  padding-left: 0.4rem;
+  border-radius: 0.3rem;
+}
+
+.newentry__add-button {
+  --button-background: rgb(12, 181, 41);
+  --button-active-background: rgb(0, 211, 36);
+  --button-border-color: rgb(14, 146, 36);
+  --button-active-border-color: var(--button-border-color);
+}

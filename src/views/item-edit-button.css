@@ -1,0 +1,8 @@
+.item__edit-button {
+  --icon-button-filter: none;
+  --button-border-color: rgb(217, 217, 217);
+  --button-background: rgb(255, 255, 255);
+  --button-color: rgb(196, 196, 196);
+  --button-active-background: rgb(248, 129, 0);
+  --button-active-border-color: rgb(195, 101, 0);
+}
