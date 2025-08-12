@@ -15,7 +15,7 @@ body {
   position: relative;
 }
 
-.layout__container {
+.main__container {
   /* background: rgb(245, 232, 217);
  */
   position: absolute;
@@ -28,7 +28,7 @@ body {
   padding-bottom: 6rem;
 }
 
-.layout__footer {
+.main__fixed-footer {
   position: fixed;
   left: 0;
   right: 0;

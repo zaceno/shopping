@@ -1,13 +1,16 @@
-import { Layout } from "@/lib/layout/layout"
+import "./main.css"
 import { Toolbar } from "./toolbar"
 import { type State } from "@/main"
 import { NewEntry } from "./newentry"
 import { ItemList } from "./item-list/item-list"
 
 export default (state: State) => (
-  <Layout
-    id="app"
-    mainContent={[<NewEntry value={state.newentry} />, <ItemList {...state} />]}
-    footerContent={Toolbar(state)}
-  />
+  <div id="app" class="main__container">
+    <main class="main__scrollable-area">
+      <NewEntry value={state.newentry} />, <ItemList {...state} />
+    </main>
+    <footer class="main__fixed-footer toolbar">
+      <Toolbar {...state} />
+    </footer>
+  </div>
 )
