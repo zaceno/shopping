@@ -1,5 +1,6 @@
-import "./item.css"
-import { ListViewItem, ListViewItemType } from "@/lib/listview/listview"
+import "webcomponent-transition-group"
+import { type State, listItems } from "@/main"
+import "./item-list.css"
 import { IconButton } from "@/lib/buttons/icon-button"
 import {
   type ItemID,
@@ -14,12 +15,22 @@ import {
   withEnterKey,
   withTargetValue,
   withFocus,
+  withEventProcess,
+  type ValidEventAction,
 } from "@/lib/event-decorators"
 import { withOnOverDragStart } from "@/lib/dragndrop"
 
-import { withAnimatedElementOnTop } from "@/lib/listview/listview"
-
-// import "./item-edit-button.css"
+const withAnimatedElementOnTop = <S, X>(action: X & ValidEventAction<S, X>) =>
+  withEventProcess(event => {
+    let prev = document.querySelector("[data-itemtop]")
+    if (prev) {
+      delete (prev as HTMLElement).dataset.itemtop
+    }
+    let li = (event.currentTarget! as HTMLButtonElement)
+      .parentNode as HTMLLIElement
+    li.dataset.itemtop = "top"
+    return event
+  }, action)
 
 type ItemEditButtonProps = {
   itemID: ItemID
@@ -75,6 +86,26 @@ function ReorderHandle(props: { disabled: boolean }) {
   )
 }
 
+type ItemTextProps = {
+  id: ItemID
+  text: string
+  editing: boolean
+}
+function ItemText(props: ItemTextProps) {
+  return props.editing ? (
+    <input
+      type="text"
+      class="item__text-input"
+      value={props.text}
+      onblur={[StopEditing, props.id]}
+      onkeypress={withEnterKey([StopEditing, props.id])}
+      oninput={withTargetValue(InputEditing)}
+    />
+  ) : (
+    <span class="item__text">{props.text}</span>
+  )
+}
+
 type ItemProps = {
   editing: boolean
   done: boolean
@@ -83,9 +114,9 @@ type ItemProps = {
   mode: "normal" | "reorder"
 }
 
-export function Item<S>(props: ItemProps): ListViewItemType<S> {
+export function Item(props: ItemProps) {
   return (
-    <ListViewItem
+    <li
       key={props.id}
       class={{
         item: true,
@@ -99,18 +130,8 @@ export function Item<S>(props: ItemProps): ListViewItemType<S> {
         editing={props.editing}
         disabled={props.done}
       />
-      {props.editing ? (
-        <input
-          type="text"
-          class="item__text-input"
-          value={props.text}
-          onblur={[StopEditing, props.id]}
-          onkeypress={withEnterKey([StopEditing, props.id])}
-          oninput={withTargetValue(InputEditing)}
-        />
-      ) : (
-        <span class="item__text">{props.text}</span>
-      )}
+      <ItemText text={props.text} editing={props.editing} id={props.id} />
+
       {props.mode === "reorder" ? (
         <ReorderHandle disabled={props.done} />
       ) : (
@@ -120,6 +141,21 @@ export function Item<S>(props: ItemProps): ListViewItemType<S> {
           disabled={props.editing}
         />
       )}
-    </ListViewItem>
+    </li>
   )
+}
+
+export function ItemList(state: State) {
+  let items = listItems(state).map(item => (
+    <Item
+      id={item.id}
+      text={item.name}
+      done={item.done > 0}
+      editing={item.id === state.editing}
+      mode={state.mode}
+    />
+  ))
+  if (state.mode !== "reorder")
+    items = <transition-group slide="item--slide">{items}</transition-group>
+  return <ul class="item-list">{items}</ul>
 }
