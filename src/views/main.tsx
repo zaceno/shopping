@@ -1,7 +1,7 @@
 import "./main.css"
-import { Toolbar } from "./toolbar"
+import { Toolbar } from "./toolbar/toolbar"
 import { type State } from "@/main"
-import { NewEntry } from "./newentry"
+import { NewEntry } from "./new-entry/new-entry"
 import { ItemList } from "./item-list/item-list"
 
 export default (state: State) => (

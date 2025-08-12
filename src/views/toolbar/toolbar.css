@@ -1,4 +1,4 @@
-.toolbar {
+:root {
   --toolbar-background-blue: linear-gradient(
     rgb(24, 103, 228),
     rgb(54, 120, 226) 30%,
@@ -50,7 +50,10 @@
   --toolbar-background: var(--toolbar-background-blue);
   --toolbar-button-background: var(--toolbar-background-blue);
   --toolbar-button-active-background: var(--toolbar-background-extrablue);
+  --drop-shadow: drop-shadow(0 -1px 0px #00000044);
+}
 
+.toolbar {
   background: var(--toolbar-background);
   width: 100%;
   display: flex;
@@ -60,11 +63,20 @@
   flex-grow: 1;
 }
 
-.toolbar__button {
+.toolbar-button.button {
   position: relative;
-  cursor: pointer;
   background: var(--toolbar-button-background);
   flex: 0 0 4.5rem;
+  border-radius: 0;
+  border: none;
+  height: 100%;
+  padding: 0.7rem 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: top;
+  gap: 0.8rem;
+
   border: none;
   border-left: 1px #ffffff2b solid;
   border-right: 1px #00000031 solid;
@@ -74,50 +86,47 @@
   &:last-child {
     border-right: none;
   }
-
-  color: #fff;
-  font-size: 1.2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  & .icon {
-    filter: drop-shadow(0 -1px 0px #00000044);
-  }
 }
 
-.toolbar__button.toolbar__button--active,
-.toolbar__button:active {
+.toolbar-button.button--active,
+.toolbar-button.button:active {
   background: var(--toolbar-button-active-background);
   border-color: transparent;
 }
-.toolbar__button.toolbar__button--red {
+
+.toolbar-button--red {
   --toolbar-button-background: var(--toolbar-background-red);
   --toolbar-button-active-background: var(--toolbar-background-extrared);
 }
-.toolbar__button.toolbar__button--green {
+.toolbar-button--green {
   --toolbar-button-background: var(--toolbar-background-green);
   --toolbar-button-active-background: var(--toolbar-background-extragreen);
 }
 
-.toolbar__button:disabled {
+.toolbar-button.button:disabled {
+  border: none;
+  border-left: 1px #ffffff2b solid;
+  border-right: 1px #00000031 solid;
   --toolbar-button-background: var(--toolbar-background-gray);
-  --toolbar-button-active-background: var(--toolbar-background-gray);
-  cursor: not-allowed;
+  background: var(--toolbar-button-background);
 }
 
-.toolbar__button-text {
+.toolbar-button__text {
   font-size: 0.75rem;
+  filter: var(--drop-shadow);
 }
-
-.toolbar__button-alerts {
+.toolbar-button__icon {
+  font-size: 1.2rem;
+  filter: var(--drop-shadow);
+}
+.toolbar-button__alerts {
   position: absolute;
-  top: 0.2rem;
+  top: 0.3rem;
   right: 0.3rem;
   font-size: 0.7rem;
+  line-height: 1rem;
   background: rgb(211, 29, 29);
-  padding: 0.1rem 0.3rem;
+  padding: 0 0.3rem;
   border-radius: 1rem;
   text-shadow: 0 -1px 0px #00000055;
 }

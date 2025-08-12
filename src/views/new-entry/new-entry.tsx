@@ -1,4 +1,4 @@
-import "./newentry.css"
+import "./new-entry.css"
 import {
   withTargetValue,
   withEnterKey,
