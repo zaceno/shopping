@@ -23,7 +23,3 @@
 .listview__item[data-listviewitem-slidetop] {
   z-index: 1000;
 }
-.listview__item[data-dnd-dragging] {
-  z-index: 4000;
-  box-shadow: 0 0 15px #00000044;
-}

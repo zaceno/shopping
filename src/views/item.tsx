@@ -1,28 +1,73 @@
 import "./item.css"
-import { ItemEditButton } from "./item-edit-button"
-import { ItemDoneButton } from "./item-done-button"
 import { ListViewItem, ListViewItemType } from "@/lib/listview/listview"
 import { IconButton } from "@/lib/buttons/icon-button"
 import {
   type ItemID,
   type Action,
   StopEditing,
+  StartEditing,
   InputEditing,
   DragOver,
+  ToggleDone,
 } from "@/main"
-import { withEnterKey, withTargetValue } from "@/lib/event-decorators"
+import {
+  withEnterKey,
+  withTargetValue,
+  withFocus,
+} from "@/lib/event-decorators"
 import { withOnOverDragStart } from "@/lib/dragndrop"
 
-type ReorderHandleProps = {
-  done: boolean
+import { withAnimatedElementOnTop } from "@/lib/listview/listview"
+
+// import "./item-edit-button.css"
+
+type ItemEditButtonProps = {
+  itemID: ItemID
+  editing: boolean
+  focusOnEdit: string
+  disabled?: boolean
 }
 
-function ReorderHandle(props: ReorderHandleProps) {
+export function ItemEditButton(props: ItemEditButtonProps) {
+  const MyStartEditing = withFocus(props.focusOnEdit, [
+    StartEditing,
+    props.itemID,
+  ])
+  const MyStopEditing = [StopEditing, props.itemID] as const
+  return (
+    <IconButton
+      icon="pen"
+      class="item__edit-button"
+      onclick={props.editing ? MyStopEditing : MyStartEditing}
+      active={props.editing}
+      disabled={props.disabled}
+    />
+  )
+}
+
+type DoneButtonProps = {
+  itemID: ItemID
+  done: boolean
+  disabled?: boolean
+}
+function ItemDoneButton(props: DoneButtonProps) {
+  return (
+    <IconButton
+      class="item__done-button"
+      icon={props.done ? "checked" : "unchecked"}
+      onclick={withAnimatedElementOnTop([ToggleDone, props.itemID])}
+      active={props.done}
+      disabled={props.disabled}
+    />
+  )
+}
+
+function ReorderHandle(props: { disabled: boolean }) {
   return (
     <IconButton
       icon="shuffle"
       class="item__reorder-handle"
-      disabled={props.done}
+      disabled={props.disabled}
       onclick={withOnOverDragStart(
         DragOver as Action<{ draggedID: string; overID: string }>,
       )}
@@ -67,7 +112,7 @@ export function Item<S>(props: ItemProps): ListViewItemType<S> {
         <span class="item__text">{props.text}</span>
       )}
       {props.mode === "reorder" ? (
-        <ReorderHandle done={props.done} />
+        <ReorderHandle disabled={props.done} />
       ) : (
         <ItemDoneButton
           itemID={props.id}
