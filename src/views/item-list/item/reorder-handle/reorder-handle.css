@@ -1,0 +1,4 @@
+.item[data-dndcurrentdragged] {
+  z-index: 4000;
+  box-shadow: 0 0 15px #00000044;
+}

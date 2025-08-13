@@ -1,0 +1,25 @@
+.item {
+  background: #fff;
+  box-sizing: border-box;
+  border-bottom: 1px #ddd solid;
+  position: relative;
+  height: 3.8rem;
+  width: 100%;
+  padding: 0.8rem;
+
+  display: flex;
+  flex-direction: row;
+  gap: 0.6rem;
+  justify-content: middle;
+}
+
+.item > button {
+  flex-shrink: 0;
+}
+
+.item.item--done {
+  background: rgb(241, 241, 241);
+  & .item__text {
+    color: rgb(185, 185, 185);
+  }
+}

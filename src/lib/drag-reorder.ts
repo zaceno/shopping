@@ -5,6 +5,11 @@ type DragStartEffectOptions<S> = {
   onOver: Action<S, { draggedID: string; overID: string }>
 }
 
+export const DATAKEY_ID = "dndid"
+const DATAKEY_CURRENTHANDLE = "dndcurrentdraghandle"
+export const DATAKEY_CURRENTDRAGGED = "dndcurrentdragged"
+const SELECTOR_FOR_DRAGGED = `[data-${DATAKEY_ID}]:has([data-${DATAKEY_CURRENTHANDLE}])`
+
 const dragStartEffect = <S>(
   dispatch: Dispatch<S>,
   options: DragStartEffectOptions<S>,
@@ -17,14 +22,12 @@ const dragStartEffect = <S>(
   // mark the handle as the handle
   const handle = options.event.currentTarget as HTMLElement
   handle.style.touchAction = "none"
-  handle.dataset.dndcurrentdraghandle = "true"
+  handle.dataset[DATAKEY_CURRENTHANDLE] = "true"
 
   // find the element to drag, from the handle
-  const dragged = document.querySelector(
-    "[data-dndid]:has([data-dndcurrentdraghandle])",
-  ) as HTMLElement
+  const dragged = document.querySelector(SELECTOR_FOR_DRAGGED) as HTMLElement
 
-  dragged.dataset.dndcurrentdragged = "true"
+  dragged.dataset[DATAKEY_CURRENTDRAGGED] = "true"
 
   // set the initial tracking data based on the dragged element's
   // position and the pointer position when event occurred.
@@ -69,8 +72,8 @@ const dragStartEffect = <S>(
           //handle the fact we are over a new element
           //dispatch the requested action for going over an element
           dispatch(options.onOver, {
-            draggedID: dragged.dataset.dndid,
-            overID: nowOver.dataset.dndid,
+            draggedID: dragged.dataset[DATAKEY_ID],
+            overID: nowOver.dataset[DATAKEY_ID],
           })
           //wait for eventual rerender, then update the tracking data for new layout
           requestAnimationFrame(() => {
@@ -88,9 +91,9 @@ const dragStartEffect = <S>(
   }
 
   const dragStopHandler = () => {
-    delete handle.dataset.dndcurrentdraghandle
+    delete handle.dataset[DATAKEY_CURRENTHANDLE]
     dragged.style.transform = ""
-    delete dragged.dataset.dndcurrentdragged
+    delete dragged.dataset[DATAKEY_CURRENTDRAGGED]
     window.removeEventListener("mouseup", mouseUpHandler)
     window.removeEventListener("touchend", touchEndHandler)
     window.removeEventListener("mousemove", mouseMoveHandler)
