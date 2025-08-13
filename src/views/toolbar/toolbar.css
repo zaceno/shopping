@@ -27,17 +27,17 @@
   );
 
   --toolbar-background-green: linear-gradient(
-    rgb(62, 199, 10),
-    rgb(75, 219, 20) 30%,
-    rgb(65, 200, 14) 50%,
-    rgb(31, 111, 0)
+    rgb(21, 196, 51),
+    rgb(33, 210, 63) 30%,
+    rgb(12, 181, 41) 50%,
+    rgb(1, 103, 18)
   );
 
   --toolbar-background-extragreen: linear-gradient(
-    rgb(85, 233, 29),
-    rgb(89, 235, 33) 30%,
-    rgb(77, 214, 24) 50%,
-    rgb(47, 149, 7)
+    rgb(36, 222, 68),
+    rgb(55, 237, 86) 30%,
+    rgb(26, 205, 56) 50%,
+    rgb(12, 131, 32)
   );
 
   --toolbar-background-gray: linear-gradient(

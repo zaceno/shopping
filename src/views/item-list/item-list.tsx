@@ -9,7 +9,7 @@ export function ItemList(state: State) {
   ))
   if (state.mode !== "reorder")
     items = (
-      <transition-group slide="item--slide" exit="item--pop">
+      <transition-group slide="item--slide" exit="item--exit">
         {items}
       </transition-group>
     )

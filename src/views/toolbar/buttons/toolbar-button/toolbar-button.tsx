@@ -13,7 +13,7 @@ export function ToolbarButton<S, X>(props: ToolbarButtonProps<S, X>) {
     <Button class={["toolbar-button", cls]} {...button}>
       <Icon class="toolbar-button__icon" name={icon} />
       <span class="toolbar-button__text">{label}</span>
-      <div class="toolbar-button__alerts">{alerts}</div>
+      {!!alerts && <div class="toolbar-button__alerts">{alerts}</div>}
     </Button>
   )
 }

@@ -9,3 +9,9 @@
 .item--slide {
   transition: 0.3s;
 }
+
+.item--exit {
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.4s;
+}

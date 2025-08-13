@@ -30,6 +30,8 @@ export function Item(props: ItemProps) {
       <ItemText item={item} editing={editing} />
       {mode === "reorder" ? (
         <ReorderHandle item={item} />
+      ) : mode === "postpone" ? (
+        <PostponeButton item={item} />
       ) : (
         <ToggleDoneButton item={item} mode={mode} />
       )}

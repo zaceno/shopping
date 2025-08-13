@@ -1,6 +1,7 @@
 import "./toolbar.css"
 import { type State } from "@/main"
 import { ClearDoneButton } from "./buttons/clear-done-button"
+import { AddPostponedButton } from "./buttons/add-postponed-button"
 import {
   SetNormalModeButton,
   SetReorderModeButton,
@@ -11,12 +12,16 @@ import {
 export function Toolbar(state: State) {
   return (
     <div class="toolbar">
-      <SetNormalModeButton mode={state.mode} />
-      <SetReorderModeButton mode={state.mode} />
-      <SetPostponeModeButton mode={state.mode} />
-      <SetRepeatModeButton mode={state.mode} />
+      <SetNormalModeButton state={state} />
+      <SetReorderModeButton state={state} />
+      <SetPostponeModeButton state={state} />
+      <SetRepeatModeButton state={state} />
       <div class="toolbar__spacer"></div>
-      <ClearDoneButton state={state} />
+      {state.mode === "postpone" ? (
+        <AddPostponedButton state={state} />
+      ) : (
+        <ClearDoneButton state={state} />
+      )}
     </div>
   )
 }

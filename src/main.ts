@@ -4,9 +4,11 @@ export type Action<P = any> = HpAction<State, P>
 import * as Items from "@/data/items"
 
 export type ItemID = Items.ItemID
+export type Item = Items.Item
+export type Mode = "normal" | "reorder" | "postpone" | "repeating"
 
 export type State = {
-  mode: "normal" | "reorder" | "postpone" | "repeating"
+  mode: Mode
   newentry: string
   items: Items.Item[]
   editing: Items.ItemID | null
@@ -90,6 +92,19 @@ export const DragOver: Action<{ draggedID: ItemID; overID: ItemID }> = (
     items: Items.moveItemTo(state.items, draggedID, overID),
   }
 }
+
+export const Postpone: Action<ItemID> = (state, id) => ({
+  ...state,
+  items: Items.postpone(state.items, id),
+})
+
+export const AddPostponed: Action = state => ({
+  ...state,
+  items: Items.addPostponed(state.items),
+})
+
+export const countPostponed = (state: State) =>
+  Items.countPostponed(state.items)
 
 export const subscriptions = (_state: State) => [
   // state.mode === "reorder" && [dragndrop, { onOver: DragOver }]

@@ -1,11 +1,10 @@
-import { type State, SetMode } from "@/main"
+import { type State, SetMode, countPostponed } from "@/main"
 import {
   type ToolbarButtonProps,
   ToolbarButton,
 } from "./toolbar-button/toolbar-button"
 
 type ModeType = State["mode"]
-type ModeProp = { mode: ModeType }
 type TBP = ToolbarButtonProps<State, ModeType>
 
 type SetModeButtonProps = {
@@ -17,21 +16,23 @@ type SetModeButtonProps = {
 }
 
 function SetModeButton(props: SetModeButtonProps) {
+  const active = props.setsMode === props.currentMode
+  const alerts = !active ? props.alerts : 0
   return (
     <ToolbarButton
-      active={props.setsMode === props.currentMode}
+      active={active}
       onclick={[SetMode, props.setsMode]}
       icon={props.icon}
       label={props.label}
-      alerts={props.alerts}
+      alerts={alerts}
     />
   )
 }
 
-export function SetNormalModeButton({ mode }: ModeProp) {
+export function SetNormalModeButton({ state }: { state: State }) {
   return (
     <SetModeButton
-      currentMode={mode}
+      currentMode={state.mode}
       setsMode="normal"
       icon="checked"
       label="Shop"
@@ -39,33 +40,34 @@ export function SetNormalModeButton({ mode }: ModeProp) {
   )
 }
 
-export function SetReorderModeButton({ mode }: ModeProp) {
+export function SetReorderModeButton({ state }: { state: State }) {
   return (
     <SetModeButton
       setsMode="reorder"
-      currentMode={mode}
+      currentMode={state.mode}
       icon="shuffle"
       label="Reorder"
     />
   )
 }
 
-export function SetPostponeModeButton({ mode }: ModeProp) {
+export function SetPostponeModeButton({ state }: { state: State }) {
   return (
     <SetModeButton
       setsMode="postpone"
-      currentMode={mode}
+      currentMode={state.mode}
       icon="forward"
       label="Postpone"
+      alerts={countPostponed(state)}
     />
   )
 }
 
-export function SetRepeatModeButton({ mode }: ModeProp) {
+export function SetRepeatModeButton({ state }: { state: State }) {
   return (
     <SetModeButton
       setsMode="repeating"
-      currentMode={mode}
+      currentMode={state.mode}
       icon="repeat"
       label="Repeat"
     />
