@@ -1,5 +1,5 @@
 .item__postpone-button {
-  --button-background: rgb(164, 109, 254);
-  --button-border-color: rgb(126, 65, 225);
-  --button-active-background: rgb(183, 138, 255);
+  --button-background: rgb(254, 109, 109);
+  --button-border-color: rgb(225, 65, 65);
+  --button-active-background: rgb(255, 52, 52);
 }

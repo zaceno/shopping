@@ -190,5 +190,12 @@ export function countClearedRepeating(list: Item[]) {
 }
 
 export function countDone(list: Item[]) {
-  return list.filter(i => i.done > 0).length
+  return list.filter(i => i.done > 0 && i.repeating !== Repeating.CLEARED)
+    .length
+}
+
+export function isRepeating(list: Item[], id: ItemID) {
+  const item = getByID(list, id)
+  if (!item) return false
+  return item.repeating === Repeating.YES
 }

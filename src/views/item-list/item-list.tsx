@@ -4,12 +4,13 @@ import "./item-list.css"
 import { Item } from "./item/item"
 
 export function ItemList(state: State) {
-  let items = listItems(state).map(item => (
-    <Item item={item} mode={state.mode} editing={state.editing === item.id} />
-  ))
+  let items = listItems(state).map(item => <Item item={item} state={state} />)
   if (state.mode !== "reorder")
     items = (
-      <transition-group slide="item--slide" exit="item--exit">
+      <transition-group
+        slide="item--slide"
+        {...(state.mode === "postpone" ? { exit: "item--exit" } : {})}
+      >
         {items}
       </transition-group>
     )

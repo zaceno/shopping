@@ -18,6 +18,7 @@ import {
   toggleRepeating,
   restoreRepeating,
   countClearedRepeating,
+  countDone,
   Repeating,
   type Item,
   type ItemID,
@@ -775,4 +776,27 @@ test("count cleared repeating", () => {
   list = clearDone(list)
 
   expect(countClearedRepeating(list)).toBe(3)
+})
+
+test.only("count done does not include cleared repeating", () => {
+  let list: Item[] = []
+  list = addItem(list, "d")
+  list = addItem(list, "c")
+  list = addItem(list, "b")
+  list = addItem(list, "a")
+  const aid = list.find(i => i.name === "a")!.id
+  const bid = list.find(i => i.name === "b")!.id
+  const cid = list.find(i => i.name === "c")!.id
+  const did = list.find(i => i.name === "d")!.id
+  list = toggleRepeating(list, aid)
+  list = toggleRepeating(list, bid)
+  list = toggleRepeating(list, cid)
+  list = toggleDone(list, aid)
+  list = toggleDone(list, bid)
+  list = clearDone(list)
+  list = toggleDone(list, cid)
+  list = toggleDone(list, did)
+  expect(countDone(list)).toBe(2)
+  list = clearDone(list)
+  expect(countDone(list)).toBe(0)
 })

@@ -106,6 +106,22 @@ export const AddPostponed: Action = state => ({
 export const countPostponed = (state: State) =>
   Items.countPostponed(state.items)
 
+export const AddRepeating: Action = state => ({
+  ...state,
+  items: Items.restoreRepeating(state.items),
+})
+
+export const countRepeating = (state: State) =>
+  Items.countClearedRepeating(state.items)
+
+export const ToggleRepeating: Action<ItemID> = (state, id) => ({
+  ...state,
+  items: Items.toggleRepeating(state.items, id),
+})
+
+export const isRepeating = (state: State, id: ItemID) =>
+  Items.isRepeating(state.items, id)
+
 export const subscriptions = (_state: State) => [
   // state.mode === "reorder" && [dragndrop, { onOver: DragOver }]
 ]

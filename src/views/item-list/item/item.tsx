@@ -1,5 +1,5 @@
 import "./item.css"
-import { type Item, type Mode } from "@/main"
+import { type State, type Item } from "@/main"
 import { ItemText } from "./item-text/item-text"
 import { ItemEditButton } from "./item-edit-button/item-edit-button"
 import {
@@ -7,16 +7,17 @@ import {
   reorderableProps,
 } from "./reorder-handle/reorder-handle"
 import { ToggleDoneButton } from "./toggle-done-button/toggle-done-button"
+import { ToggleRepeatingButton } from "./toggle-repeating-button/toggle-repeating-button"
 import { PostponeButton } from "./postpone-button/postpone-button"
 type ItemProps = {
-  editing: boolean
-  mode: Mode
+  state: State
   item: Item
 }
 
 export function Item(props: ItemProps) {
-  const { editing, mode, item } = props
-
+  const { state, item } = props
+  const editing = state.editing === item.id
+  const mode = state.mode
   return (
     <li
       key={item.id}
@@ -32,6 +33,8 @@ export function Item(props: ItemProps) {
         <ReorderHandle item={item} />
       ) : mode === "postpone" ? (
         <PostponeButton item={item} />
+      ) : mode === "repeating" ? (
+        <ToggleRepeatingButton state={state} item={item} />
       ) : (
         <ToggleDoneButton item={item} mode={mode} />
       )}

@@ -1,0 +1,6 @@
+.item__repeating-button {
+  --button-background: #fff;
+  --button-color: #ccc;
+  --button-border-color: #ccc;
+  --button-active-background: rgb(47, 117, 227);
+}

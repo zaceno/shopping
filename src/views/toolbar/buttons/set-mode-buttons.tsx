@@ -1,4 +1,4 @@
-import { type State, SetMode, countPostponed } from "@/main"
+import { type State, SetMode, countPostponed, countRepeating } from "@/main"
 import {
   type ToolbarButtonProps,
   ToolbarButton,
@@ -70,6 +70,7 @@ export function SetRepeatModeButton({ state }: { state: State }) {
       currentMode={state.mode}
       icon="repeat"
       label="Repeat"
+      alerts={countRepeating(state)}
     />
   )
 }
