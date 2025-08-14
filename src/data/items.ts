@@ -2,9 +2,9 @@ export const RANKSTEP = 10000
 type ItemIDBrand = { itemID: true }
 export type ItemID = string & ItemIDBrand
 export enum Repeating {
-  NO = 0,
-  YES = 1,
-  CLEARED = 2,
+  NO = "NO",
+  YES = "YES",
+  CLEARED = "CLEARED",
 }
 export type Item = {
   id: ItemID

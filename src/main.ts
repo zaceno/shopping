@@ -1,13 +1,37 @@
 import { type Action as HpAction } from "hyperapp"
-import focuser from "@/lib/focuser"
+//import focuser from "@/lib/focuser"
+import {
+  watchLogouts,
+  tryLogin,
+  doLogout,
+  checkLogin,
+  loadItems,
+} from "./lib/supabase"
 export type Action<P = any> = HpAction<State, P>
 import * as Items from "@/data/items"
-
 export type ItemID = Items.ItemID
 export type Item = Items.Item
 export type Mode = "normal" | "reorder" | "postpone" | "repeating"
+export enum AuthStatus {
+  LOGGED_OUT = 0,
+  LOGGING_IN = 1,
+  LOGGED_IN = 2,
+  LOGGING_OUT = 3,
+  CHECKING = 4,
+}
+export enum AuthError {
+  NONE = 0,
+  NOEMAIL = 1,
+  NOPASSWORD = 2,
+  INCORRECT = 3,
+  SESSIONEND = 4,
+}
 
 export type State = {
+  auth: AuthStatus
+  authError: AuthError
+  email: string
+  password: string
   mode: Mode
   newentry: string
   items: Items.Item[]
@@ -17,23 +41,101 @@ export type State = {
 
 export const init: Action = _ => [
   {
+    auth: AuthStatus.CHECKING,
+    authError: AuthError.NONE,
+    email: "",
+    password: "",
     mode: "normal",
     newentry: "",
-    items: Items.addItem(
-      Items.addItem(
-        Items.addItem(
-          Items.addItem([], "cheese flavored nachos"),
-          "ground beef",
-        ),
-        "milk, 5l",
-      ),
-      "a bunch of asparagus",
-    ),
+    items: [],
     editing: null,
     editingInput: "",
   },
-  focuser(".newentry__input"),
+  [checkLogin, { callback: UpdateLogin }],
+  //  focuser(".newentry__input"),
 ]
+export const subscriptions = (state: State) => [
+  state.auth === AuthStatus.LOGGED_IN && [
+    watchLogouts,
+    { callback: SessionEnded },
+  ],
+]
+
+const SessionEnded: Action = state => ({
+  ...state,
+  auth: AuthStatus.LOGGED_OUT,
+  authError: AuthError.SESSIONEND,
+})
+
+const UpdateLogin: Action<boolean> = (state, loggedIn) => {
+  const newStatus = loggedIn ? AuthStatus.LOGGED_IN : AuthStatus.LOGGED_OUT
+  if (state.auth === newStatus) return state
+  return [
+    { ...state, auth: newStatus },
+    newStatus === AuthStatus.LOGGED_IN && [loadItems, { callback: LoadItems }],
+  ]
+}
+
+const LoadItems: Action<Item[]> = (state, items) => ({ ...state, items })
+
+export const SetEmail: Action<string> = (state, email) => ({
+  ...state,
+  email,
+})
+export const SetPassword: Action<string> = (state, password) => ({
+  ...state,
+  password,
+})
+
+export const LogIn: Action = state => {
+  if (state.auth !== AuthStatus.LOGGED_OUT) return state
+  if (state.email === "") {
+    return { ...state, authError: AuthError.NOEMAIL }
+  }
+  if (state.password === "") {
+    return { ...state, authError: AuthError.NOPASSWORD }
+  }
+  return [
+    { ...state, auth: AuthStatus.LOGGING_IN, authError: AuthError.NONE },
+    [
+      tryLogin,
+      {
+        email: state.email,
+        password: state.password,
+        onOK: LoginSuccessful,
+        onFail: LoginFailed,
+      },
+    ],
+  ]
+}
+
+const LoginSuccessful: Action = state => ({
+  ...state,
+  auth: AuthStatus.LOGGED_IN,
+  authError: AuthError.NONE,
+  password: "",
+  email: "",
+})
+
+const LoginFailed: Action = state => ({
+  ...state,
+  auth: AuthStatus.LOGGED_OUT,
+  password: "",
+  authError: AuthError.INCORRECT,
+})
+
+export const LogOut: Action = state => {
+  if (state.auth !== AuthStatus.LOGGED_IN) return state
+  return [
+    { ...state, auth: AuthStatus.LOGGING_OUT },
+    [doLogout, { onDone: SetLoggedOut }],
+  ]
+}
+
+const SetLoggedOut: Action = state => ({
+  ...state,
+  auth: AuthStatus.LOGGED_OUT,
+})
 
 export const ToggleDone: Action<Items.ItemID> = (state, id) => ({
   ...state,
@@ -121,7 +223,3 @@ export const ToggleRepeating: Action<ItemID> = (state, id) => ({
 
 export const isRepeating = (state: State, id: ItemID) =>
   Items.isRepeating(state.items, id)
-
-export const subscriptions = (_state: State) => [
-  // state.mode === "reorder" && [dragndrop, { onOver: DragOver }]
-]

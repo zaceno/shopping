@@ -1,0 +1,33 @@
+.login {
+  border: rgb(202, 173, 118) solid 1px;
+  width: 17rem;
+  padding: 1.4rem;
+  background: rgb(245, 228, 196);
+  border-radius: 0.4rem;
+  margin: 4rem auto 0 auto;
+}
+
+.login :is(h2, p) {
+  display: flex;
+  margin-bottom: 1rem;
+  & * {
+    flex: 1 0 auto;
+  }
+}
+
+.login input {
+  font-size: 1rem;
+  padding: 0.4rem;
+  border: none;
+  border-radius: 0.4rem;
+}
+
+.login__heading {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.713);
+}
+
+.login__error {
+  color: red;
+}

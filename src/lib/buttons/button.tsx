@@ -25,6 +25,7 @@ export function Button<S, X>(
 
   return (
     <button
+      type="button"
       class={[
         "button",
         { "button--active": props.active && !props.disabled },

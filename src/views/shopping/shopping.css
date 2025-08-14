@@ -1,0 +1,18 @@
+.shopping__scrollable-areas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 6rem;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+.shopping__footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-shadow: 0 -2px 7px #00000068;
+  z-index: 2000;
+}
