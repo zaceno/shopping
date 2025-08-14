@@ -51,29 +51,25 @@ export const init: Action = _ => [
     editing: null,
     editingInput: "",
   },
-  [checkLogin, { callback: UpdateLogin }],
+  [checkLogin, { callback: CheckLoginResult }],
   //  focuser(".newentry__input"),
 ]
 export const subscriptions = (state: State) => [
   state.auth === AuthStatus.LOGGED_IN && [
     watchLogouts,
-    { callback: SessionEnded },
+    { callback: WatchLogoutCallback },
   ],
 ]
 
-const SessionEnded: Action = state => ({
+const WatchLogoutCallback: Action = state => ({
   ...state,
   auth: AuthStatus.LOGGED_OUT,
   authError: AuthError.SESSIONEND,
 })
 
-const UpdateLogin: Action<boolean> = (state, loggedIn) => {
-  const newStatus = loggedIn ? AuthStatus.LOGGED_IN : AuthStatus.LOGGED_OUT
-  if (state.auth === newStatus) return state
-  return [
-    { ...state, auth: newStatus },
-    newStatus === AuthStatus.LOGGED_IN && [loadItems, { callback: LoadItems }],
-  ]
+const CheckLoginResult: Action<boolean> = (_, loggedIn) => {
+  if (loggedIn) return LoginSuccessful
+  return SetLoggedOut
 }
 
 const LoadItems: Action<Item[]> = (state, items) => ({ ...state, items })
@@ -109,13 +105,16 @@ export const LogIn: Action = state => {
   ]
 }
 
-const LoginSuccessful: Action = state => ({
-  ...state,
-  auth: AuthStatus.LOGGED_IN,
-  authError: AuthError.NONE,
-  password: "",
-  email: "",
-})
+const LoginSuccessful: Action = state => [
+  {
+    ...state,
+    auth: AuthStatus.LOGGED_IN,
+    authError: AuthError.NONE,
+    password: "",
+    email: "",
+  },
+  [loadItems, { callback: LoadItems }],
+]
 
 const LoginFailed: Action = state => ({
   ...state,

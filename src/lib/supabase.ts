@@ -1,12 +1,6 @@
 import { type Dispatch, type Action } from "hyperapp"
 import { createClient } from "@supabase/supabase-js"
 
-//TODO: remove this
-//@ts-ignore
-window.mockLogout = async () => {
-  supabase.auth.signOut()
-}
-
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_KEY,
