@@ -10,17 +10,14 @@ let running = false
 const queue: Change[] = []
 
 async function insertItem(item: Item) {
-  console.log("inserting", item)
   return await supabase.from(ITEMTABLE).insert(item)
 }
 
 async function removeItem(item: Item) {
-  console.log("deleting", item)
   return await supabase.from(ITEMTABLE).delete().eq("id", item.id)
 }
 
 async function updateItem(item: Item) {
-  console.log("udpating", item)
   return await supabase.from(ITEMTABLE).update(item).eq("id", item.id)
 }
 
@@ -34,12 +31,10 @@ async function pump() {
     // tells queueChange that processing
     // will need to be started next time
     // a change comes in:
-    console.log("queue empty - processing halted")
     running = false
     return
   }
 
-  console.log("processing", change)
   // send the appropriate change
   const { kind, item } = change
   if (kind === "insert") {
@@ -59,7 +54,6 @@ async function pump() {
 export function queueChange(kind: ChangeKind, item: Item) {
   // add item to queue
   queue.push({ kind, item })
-  console.log("pushing change", kind, item)
   if (!running) {
     // since we aren't already,
     // start processing changes
@@ -93,7 +87,6 @@ let updateCallbackID: NodeJS.Timeout | null = null
 
 function registerChanges(newItems: Item[]) {
   if (!currentItemMap) return null
-  console.log("IDENTIFYING CHANGES")
   const newMap = makeItemMap(newItems)
   for (let id in currentItemMap) {
     if (!(id in newMap)) {
@@ -121,7 +114,6 @@ function registerChanges(newItems: Item[]) {
 }
 
 export function pushItemChanges(_: any, items: Item[]) {
-  console.log("NOTIFY CHANGES", items.length)
   if (!currentItemMap) return
   if (!!updateCallbackID) clearTimeout(updateCallbackID)
   updateCallbackID = setTimeout(() => {

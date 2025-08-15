@@ -50,10 +50,8 @@ export const init: Action = _ => [
   focuser(".newentry__input"),
 ]
 export const subscriptions = (state: State) => [
-  state.auth === AuthStatus.LOGGED_IN && [
-    watchLogouts,
-    { callback: WatchLogoutCallback },
-  ],
+  state.auth === AuthStatus.LOGGED_IN &&
+    ([watchLogouts, { callback: WatchLogoutCallback }] as const),
 ]
 
 const WatchLogoutCallback: Action = state => ({
