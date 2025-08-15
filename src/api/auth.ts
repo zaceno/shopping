@@ -1,10 +1,5 @@
 import { type Dispatch, type Action } from "hyperapp"
-import { createClient } from "@supabase/supabase-js"
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_KEY,
-)
+import { supabase } from "./supabase"
 
 export function watchLogouts<S>(
   dispatch: Dispatch<S>,
@@ -54,16 +49,4 @@ export async function checkLogin<S>(
 ) {
   const { data } = await supabase.auth.getSession()
   dispatch(options.callback, !!data.session)
-}
-
-import { type Item } from "@/data/items"
-export async function loadItems<S>(
-  dispatch: Dispatch<S>,
-  options: { callback: Action<S, Item[]> },
-) {
-  const { data } = await supabase
-    .from(import.meta.env.VITE_SHOPPING_TABLE)
-    .select("*")
-  if (!data) return
-  dispatch(options.callback, data as Item[])
 }

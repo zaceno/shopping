@@ -1,12 +1,7 @@
 import { type Action as HpAction } from "hyperapp"
-//import focuser from "@/lib/focuser"
-import {
-  watchLogouts,
-  tryLogin,
-  doLogout,
-  checkLogin,
-  loadItems,
-} from "./lib/supabase"
+import focuser from "@/lib/focuser"
+import { watchLogouts, tryLogin, doLogout, checkLogin } from "@/api/auth"
+import { loadItems, pushItemChanges } from "@/api/items"
 export type Action<P = any> = HpAction<State, P>
 import * as Items from "@/data/items"
 export type ItemID = Items.ItemID
@@ -52,7 +47,7 @@ export const init: Action = _ => [
     editingInput: "",
   },
   [checkLogin, { callback: CheckLoginResult }],
-  //  focuser(".newentry__input"),
+  focuser(".newentry__input"),
 ]
 export const subscriptions = (state: State) => [
   state.auth === AuthStatus.LOGGED_IN && [
@@ -114,6 +109,7 @@ const LoginSuccessful: Action = state => [
     email: "",
   },
   [loadItems, { callback: LoadItems }],
+  focuser(".newentry__input"),
 ]
 
 const LoginFailed: Action = state => ({
@@ -136,21 +132,23 @@ const SetLoggedOut: Action = state => ({
   auth: AuthStatus.LOGGED_OUT,
 })
 
-export const ToggleDone: Action<Items.ItemID> = (state, id) => ({
-  ...state,
-  editing: null,
-  items: Items.toggleDone(state.items, id),
-})
+export const ToggleDone: Action<Items.ItemID> = (state, id) => {
+  const items = Items.toggleDone(state.items, id)
+  return [{ ...state, items, editing: null }, [pushItemChanges, items]]
+}
 
 export const StartEditing: Action<Items.ItemID> = (state, id) => ({
   ...state,
   editing: id,
 })
 
-export const StopEditing: Action<Items.ItemID> = (state, id) => ({
-  ...state,
-  editing: state.editing === id ? null : state.editing,
-})
+export const StopEditing: Action<Items.ItemID> = (state, id) => [
+  {
+    ...state,
+    editing: state.editing === id ? null : state.editing,
+  },
+  [pushItemChanges, state.items],
+]
 
 export const InputEditing: Action<string> = (state, text) =>
   !state.editing
@@ -163,21 +161,24 @@ export const InputNewEntry: Action<string> = (state, newentry) => ({
 })
 export const AddNewItem: Action<any> = state => {
   if (!state.newentry) return state
-  return {
-    ...state,
-    items: Items.addItem(state.items, state.newentry),
-    newentry: "",
-  }
+  const items = Items.addItem(state.items, state.newentry)
+  return [{ ...state, items, newentry: "" }, [pushItemChanges, items]]
 }
 
 export const SetMode: Action<State["mode"]> = (state, mode) =>
   mode === state.mode ? state : { ...state, mode, editing: null }
 
-export const ClearDone: Action = state => ({
-  ...state,
-  editing: null,
-  items: Items.clearDone(state.items),
-})
+export const ClearDone: Action = state => {
+  const items = Items.clearDone(state.items)
+  return [
+    {
+      ...state,
+      items,
+      editing: null,
+    },
+    [pushItemChanges, items],
+  ]
+}
 
 export const countDone = (state: State) => Items.countDone(state.items)
 
@@ -188,37 +189,35 @@ export const DragOver: Action<{ draggedID: ItemID; overID: ItemID }> = (
   { draggedID, overID },
 ) => {
   if (state.mode !== "reorder") return state
-  return {
-    ...state,
-    items: Items.moveItemTo(state.items, draggedID, overID),
-  }
+  const items = Items.moveItemTo(state.items, draggedID, overID)
+  return [{ ...state, items }, [pushItemChanges, items]]
 }
 
-export const Postpone: Action<ItemID> = (state, id) => ({
-  ...state,
-  items: Items.postpone(state.items, id),
-})
+export const Postpone: Action<ItemID> = (state, id) => {
+  const items = Items.postpone(state.items, id)
+  return [{ ...state, items }, [pushItemChanges, items]]
+}
 
-export const AddPostponed: Action = state => ({
-  ...state,
-  items: Items.addPostponed(state.items),
-})
+export const AddPostponed: Action = state => {
+  const items = Items.addPostponed(state.items)
+  return [{ ...state, items }, [pushItemChanges, items]]
+}
 
 export const countPostponed = (state: State) =>
   Items.countPostponed(state.items)
 
-export const AddRepeating: Action = state => ({
-  ...state,
-  items: Items.restoreRepeating(state.items),
-})
+export const AddRepeating: Action = state => {
+  const items = Items.restoreRepeating(state.items)
+  return [{ ...state, items }, [pushItemChanges, items]]
+}
 
 export const countRepeating = (state: State) =>
   Items.countClearedRepeating(state.items)
 
-export const ToggleRepeating: Action<ItemID> = (state, id) => ({
-  ...state,
-  items: Items.toggleRepeating(state.items, id),
-})
+export const ToggleRepeating: Action<ItemID> = (state, id) => {
+  const items = Items.toggleRepeating(state.items, id)
+  return [{ ...state, items }, [pushItemChanges, items]]
+}
 
 export const isRepeating = (state: State, id: ItemID) =>
   Items.isRepeating(state.items, id)
