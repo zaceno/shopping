@@ -9,6 +9,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  base: "/shopping/",
   plugins: [hyperapp()],
   test: {},
 })
