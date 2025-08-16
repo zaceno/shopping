@@ -2,6 +2,7 @@ import { type Action as HpAction } from "hyperapp"
 import focuser from "@/lib/focuser"
 import { watchLogouts, tryLogin, doLogout, checkLogin } from "@/api/auth"
 import { loadItems, pushItemChanges } from "@/api/items"
+import { subscribeChanges } from "@/api/changes"
 export type Action<P = any> = HpAction<State, P>
 import * as Items from "@/data/items"
 export type ItemID = Items.ItemID
@@ -52,7 +53,42 @@ export const init: Action = _ => [
 export const subscriptions = (state: State) => [
   state.auth === AuthStatus.LOGGED_IN &&
     ([watchLogouts, { callback: WatchLogoutCallback }] as const),
+  state.auth === AuthStatus.LOGGED_IN &&
+    ([
+      subscribeChanges,
+      {
+        onInsert: RemoteInsert,
+        onUpdate: RemoteUpdate,
+        onDelete: RemoteDelete,
+      },
+    ] as const),
 ]
+
+const RemoteInsert: Action<Item> = (state, item) => {
+  if (state.items.find(i => i.id === item.id)) return state
+  return { ...state, items: [...state.items, item] }
+}
+
+const RemoteUpdate: Action<Item> = (state, newerItem) => {
+  const existingItem = state.items.find(i => i.id === newerItem.id)
+  if (!existingItem) return state
+  if (
+    newerItem.name === existingItem.name &&
+    newerItem.rank === existingItem.rank &&
+    newerItem.done === existingItem.done &&
+    newerItem.postponed === existingItem.postponed &&
+    newerItem.repeating === existingItem.repeating
+  ) {
+    return state
+  }
+  const otherItems = state.items.filter(i => i.id !== newerItem.id)
+  return { ...state, items: [...otherItems, newerItem] }
+}
+
+const RemoteDelete: Action<ItemID> = (state, deletedID) => {
+  if (!state.items.find(i => i.id === deletedID)) return state
+  return { ...state, items: state.items.filter(i => i.id !== deletedID) }
+}
 
 const WatchLogoutCallback: Action = state => ({
   ...state,
