@@ -17,6 +17,7 @@ export function subscribeChanges<S>(
     old: Item
     eventType: "INSERT" | "UPDATE" | "DELETE"
   }) => {
+    console.log("event", payload)
     if (payload.eventType === "INSERT") {
       dispatch(options.onInsert, payload.new)
     } else if (payload.eventType === "UPDATE") {
@@ -31,10 +32,11 @@ export function subscribeChanges<S>(
   supabase.auth
     .getSession()
     .then(res => {
+      console.log("found session", res.data.session!)
       if (!!res.data.session) return res.data.session!
     })
     .then(session => {
-      if (!session) throw new Error("Why did this fail")
+      console.log("setting realtime auth token", session!.access_token)
       supabase.realtime.setAuth(session!.access_token)
     })
     .then(() => {
@@ -46,7 +48,9 @@ export function subscribeChanges<S>(
           { event: "*", schema: "public", table: "shopping" },
           handlePayload,
         )
-        .subscribe()
+        .subscribe(status => {
+          console.log("SUBSCRIBED", status)
+        })
     })
 
   return () => {
