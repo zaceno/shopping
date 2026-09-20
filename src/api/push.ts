@@ -10,7 +10,7 @@ const delayedChanges = (() => {
     delay = setTimeout(() => {
       delay = null
       compareChanges(previous, latest)
-    }, DEBOUNCE_TIME)
+    }, DEBOUNCE_TIME) as unknown as Timeout
   }
 })()
 
