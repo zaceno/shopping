@@ -3,6 +3,7 @@ import focuser from "@/lib/focuser"
 import { checkLogin, tryLogin, doLogout } from "@/api/auth"
 import { loadItems } from "@/api/items"
 import { subscribeChanges } from "@/api/changes"
+import { pushChanges } from "./api/push"
 export type Action<P = any> = HpAction<State, P>
 import * as Items from "@/data/items"
 
@@ -36,8 +37,20 @@ export type State = {
   editingInput: string
 }
 
+const _withItemChanges_doSend: Action<Item[]> = (state, previous) => [
+  state,
+  [pushChanges, { previous, latest: state.items }],
+]
+const withItemChanges =
+  <P>(action: Action<P>): Action<P> =>
+  (state, payload) =>
+    [
+      state,
+      dispatch => dispatch(action, payload),
+      dispatch => dispatch(_withItemChanges_doSend, state.items),
+    ]
+
 export const init: Action = _ => {
-  console.log("INITIALIZING - checking Login")
   return [
     {
       auth: AuthStatus.CHECKING,
@@ -161,26 +174,25 @@ const SetLoggedOut: Action = state => ({
   auth: AuthStatus.LOGGED_OUT,
 })
 
-export const ToggleDone: Action<Items.ItemID> = (state, id) => {
-  const items = Items.toggleDone(state.items, id)
-  return [
-    { ...state, items, editing: null },
-    // [pushItemChanges, items]
-  ]
-}
+export const ToggleDone: Action<Items.ItemID> = withItemChanges(
+  (state, id) => ({
+    ...state,
+    items: Items.toggleDone(state.items, id),
+    editing: null,
+  }),
+)
 
 export const StartEditing: Action<Items.ItemID> = (state, id) => ({
   ...state,
   editing: id,
 })
 
-export const StopEditing: Action<Items.ItemID> = (state, id) => [
-  {
+export const StopEditing: Action<Items.ItemID> = withItemChanges(
+  (state, id) => ({
     ...state,
     editing: state.editing === id ? null : state.editing,
-  },
-  // [pushItemChanges, state.items],
-]
+  }),
+)
 
 export const InputEditing: Action<string> = (state, text) =>
   !state.editing
@@ -191,83 +203,57 @@ export const InputNewEntry: Action<string> = (state, newentry) => ({
   ...state,
   newentry,
 })
-export const AddNewItem: Action<any> = state => {
+
+export const AddNewItem: Action<any> = withItemChanges(state => {
   if (!state.newentry) return state
   const items = Items.addItem(state.items, state.newentry)
-  return [
-    { ...state, items, newentry: "" },
-    // [pushItemChanges, items]
-  ]
-}
+  return { ...state, items, newentry: "" }
+})
 
 export const SetMode: Action<State["mode"]> = (state, mode) =>
   mode === state.mode ? state : { ...state, mode, editing: null }
 
-export const ClearDone: Action = state => {
-  const items = Items.clearDone(state.items)
-  return [
-    {
-      ...state,
-      items,
-      editing: null,
-    },
-    // [pushItemChanges, items],
-  ]
-}
+export const ClearDone: Action = withItemChanges(state => ({
+  ...state,
+  items: Items.clearDone(state.items),
+  editing: null,
+}))
 
 export const countDone = (state: State) => Items.countDone(state.items)
 
 export const listItems = (state: State) => Items.displayList(state.items)
 
-export const DragOver: Action<{ draggedID: ItemID; overID: ItemID }> = (
-  state,
-  { draggedID, overID },
-) => {
-  if (state.mode !== "reorder") return state
-  const items = Items.moveItemTo(state.items, draggedID, overID)
-  return [
-    { ...state, items },
-    // [pushItemChanges, items]
-  ]
-}
+export const DragOver: Action<{ draggedID: ItemID; overID: ItemID }> =
+  withItemChanges((state, { draggedID, overID }) => {
+    if (state.mode !== "reorder") return state
+    return { ...state, items: Items.moveItemTo(state.items, draggedID, overID) }
+  })
 
-export const Postpone: Action<ItemID> = (state, id) => {
-  const items = Items.postpone(state.items, id)
-  return [
-    { ...state, items },
-    // [pushItemChanges, items]
-  ]
-}
+export const Postpone: Action<ItemID> = withItemChanges((state, id) => ({
+  ...state,
+  items: Items.postpone(state.items, id),
+}))
 
-export const AddPostponed: Action = state => {
-  const items = Items.addPostponed(state.items)
-  return [
-    { ...state, items },
-    // [pushItemChanges, items]
-  ]
-}
+export const AddPostponed: Action = withItemChanges(state => ({
+  ...state,
+  items: Items.addPostponed(state.items),
+}))
 
 export const countPostponed = (state: State) =>
   Items.countPostponed(state.items)
 
-export const AddRepeating: Action = state => {
-  const items = Items.restoreRepeating(state.items)
-  return [
-    { ...state, items },
-    // [pushItemChanges, items]
-  ]
-}
+export const AddRepeating: Action = withItemChanges(state => ({
+  ...state,
+  items: Items.restoreRepeating(state.items),
+}))
 
 export const countRepeating = (state: State) =>
   Items.countClearedRepeating(state.items)
 
-export const ToggleRepeating: Action<ItemID> = (state, id) => {
-  const items = Items.toggleRepeating(state.items, id)
-  return [
-    { ...state, items },
-    // [pushItemChanges, items]
-  ]
-}
+export const ToggleRepeating: Action<ItemID> = withItemChanges((state, id) => ({
+  ...state,
+  items: Items.toggleRepeating(state.items, id),
+}))
 
 export const isRepeating = (state: State, id: ItemID) =>
   Items.isRepeating(state.items, id)

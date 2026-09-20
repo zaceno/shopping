@@ -11,9 +11,9 @@ type ItemEditButtonProps = {
 export function ItemEditButton(props: ItemEditButtonProps) {
   const MyStartEditing = withFocus(".item__text-input", [
     StartEditing,
-    props.item.id,
+    props.item._id,
   ])
-  const MyStopEditing = [StopEditing, props.item.id] as const
+  const MyStopEditing = [StopEditing, props.item._id] as const
   return (
     <IconButton
       icon="pen"

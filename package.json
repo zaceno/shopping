@@ -19,7 +19,6 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.55.0",
     "@types/pouchdb": "^6.4.2",
     "events": "^3.3.0",
     "hyperapp": "^2.0.22",

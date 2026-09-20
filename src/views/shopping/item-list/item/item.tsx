@@ -16,11 +16,11 @@ type ItemProps = {
 
 export function Item(props: ItemProps) {
   const { state, item } = props
-  const editing = state.editing === item.id
+  const editing = state.editing === item._id
   const mode = state.mode
   return (
     <li
-      key={item.id}
+      key={item._id}
       class={{
         item: true,
         "item--done": item.done > 0,

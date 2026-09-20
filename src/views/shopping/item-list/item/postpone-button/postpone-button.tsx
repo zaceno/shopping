@@ -11,7 +11,7 @@ export function PostponeButton({ item }: PostponeButtonProps) {
     <IconButton
       icon="forward"
       class="item__postpone-button"
-      onclick={[Postpone, item.id]}
+      onclick={[Postpone, item._id]}
       disabled={!!item.done}
     />
   )

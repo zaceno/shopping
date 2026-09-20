@@ -27,7 +27,7 @@ type ToggleDoneButtonProps = {
 }
 
 export function ToggleDoneButton(props: ToggleDoneButtonProps) {
-  const id = props.item.id
+  const id = props.item._id
   const isDone = props.item.done > 0
   const normalMode = props.mode === "normal"
   const isDisabled = isDone && !normalMode

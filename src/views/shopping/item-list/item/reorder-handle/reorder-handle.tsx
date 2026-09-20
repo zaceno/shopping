@@ -7,7 +7,7 @@ import { type Item, type Action, DragOver } from "@/main"
 import { IconButton } from "@/lib/buttons/icon-button"
 
 export function reorderableProps(on: boolean, item: Item) {
-  return !on ? {} : { [`data-${REORDERKEY}`]: item.id }
+  return !on ? {} : { [`data-${REORDERKEY}`]: item._id }
 }
 
 export function ReorderHandle({ item }: { item: Item }) {

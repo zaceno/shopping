@@ -14,9 +14,9 @@ export function ToggleRepeatingButton({
   return (
     <IconButton
       icon="repeat"
-      active={isRepeating(state, item.id)}
+      active={isRepeating(state, item._id)}
       class="item__repeating-button"
-      onclick={[ToggleRepeating, item.id]}
+      onclick={[ToggleRepeating, item._id]}
       disabled={!!item.done}
     />
   )
