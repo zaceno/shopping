@@ -1,23 +1,13 @@
+import { type Item, type ItemID, Repeating } from "@/api/items"
+export type { Item, ItemID }
+export { Repeating }
+
 export const RANKSTEP = 10000
-type ItemIDBrand = { itemID: true }
-export type ItemID = string & ItemIDBrand
-export enum Repeating {
-  NO = "NO",
-  YES = "YES",
-  CLEARED = "CLEARED",
-}
-export type Item = {
-  id: ItemID
-  name: string
-  rank: number
-  done: number // 0 means not done, > 0 is the rank to display done items
-  postponed: boolean
-  repeating: Repeating
-}
 
 export const genID = () => crypto.randomUUID() as ItemID
 
-export const getByID = (list: Item[], id: ItemID) => list.find(i => i.id === id)
+export const getByID = (list: Item[], id: ItemID) =>
+  list.find(i => i._id === id)
 
 const findMaxRank = (list: Item[]) =>
   list.reduce((mr, i) => (i.rank < mr ? mr : i.rank), 0)
@@ -29,7 +19,7 @@ export function addItem(list: Item[], name: string): Item[] {
   const rank = findMaxRank(list) + RANKSTEP
   return [
     {
-      id: genID(),
+      _id: genID(),
       name,
       rank,
       done: 0,
@@ -48,7 +38,7 @@ export function byRank(list: Item[]) {
 
 export function toggleDone(list: Item[], id: ItemID) {
   const item = getByID(list, id)
-  const rest = list.filter(i => i.id !== id)
+  const rest = list.filter(i => i._id !== id)
   if (!item) return list
   if (item.postponed) return list
   let newItem = { ...item }
@@ -58,7 +48,7 @@ export function toggleDone(list: Item[], id: ItemID) {
 }
 
 const getIndexOfNotDoneItem = (list: Item[], id: ItemID) => {
-  const i = list.findIndex(i => i.id === id)
+  const i = list.findIndex(i => i._id === id)
   if (i < 0) throw new Error(`Item with id ${id} not found in list`)
   if (list[i].done > 0)
     throw new Error(`Item with id ${id} is done and cannot move`)
@@ -95,11 +85,11 @@ export function clearDone(list: Item[]) {
 }
 
 export function removeItem(list: Item[], id: ItemID) {
-  return list.filter(i => i.id !== id)
+  return list.filter(i => i._id !== id)
 }
 
 export function setItemName(list: Item[], id: ItemID, name: string) {
-  return list.map(i => (i.id !== id ? i : { ...i, name }))
+  return list.map(i => (i._id !== id ? i : { ...i, name }))
 }
 
 export function rerank(list: Item[]) {
@@ -135,7 +125,7 @@ export function displayList(list: Item[]) {
 
 export function postpone(list: Item[], id: ItemID) {
   return list.map(item => {
-    if (item.id !== id) return item
+    if (item._id !== id) return item
     if (item.done > 0) return item
     return { ...item, postponed: true }
   })
@@ -161,7 +151,7 @@ export function countPostponed(list: Item[]) {
 
 export function toggleRepeating(list: Item[], id: ItemID) {
   return list.map(item => {
-    if (item.id !== id) return item
+    if (item._id !== id) return item
     if (item.repeating === Repeating.CLEARED) return item
     return {
       ...item,

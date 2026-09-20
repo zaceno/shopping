@@ -4,7 +4,7 @@ import { Button } from "@/lib/buttons/button"
 import {
   AuthStatus,
   AuthError,
-  SetEmail,
+  SetUsername,
   SetPassword,
   LogIn,
   LogOut,
@@ -16,14 +16,14 @@ function LoginForm(props: { state: State }) {
   return (
     <div class="login">
       <h2 class="login__heading">Please Log In</h2>
-      <p class="login__email">
+      <p class="login__username">
         <input
-          placeholder="Email address"
+          placeholder="Username"
           disabled={state.auth === AuthStatus.LOGGING_IN}
-          type="email"
-          name="email"
-          value={state.email}
-          oninput={withTargetValue(SetEmail)}
+          type="text"
+          name="username"
+          value={state.username}
+          oninput={withTargetValue(SetUsername)}
           onkeypress={withEnterKey(LogIn)}
         />
       </p>
@@ -44,8 +44,8 @@ function LoginForm(props: { state: State }) {
         </Button>
       </p>
       <p class="login__error">
-        {state.authError === AuthError.NOEMAIL
-          ? "You forgot to enter an email address"
+        {state.authError === AuthError.NOUSERNAME
+          ? "You forgot to enter a username"
           : state.authError === AuthError.NOPASSWORD
           ? "You forgot to enter a password"
           : state.authError === AuthError.INCORRECT

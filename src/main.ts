@@ -1,10 +1,11 @@
 import { type Action as HpAction } from "hyperapp"
 import focuser from "@/lib/focuser"
-import { watchLogouts, tryLogin, doLogout, checkLogin } from "@/api/auth"
-import { loadItems, pushItemChanges } from "@/api/items"
+import { checkLogin, tryLogin, doLogout } from "@/api/auth"
+import { loadItems } from "@/api/items"
 import { subscribeChanges } from "@/api/changes"
 export type Action<P = any> = HpAction<State, P>
 import * as Items from "@/data/items"
+
 export type ItemID = Items.ItemID
 export type Item = Items.Item
 export type Mode = "normal" | "reorder" | "postpone" | "repeating"
@@ -17,7 +18,7 @@ export enum AuthStatus {
 }
 export enum AuthError {
   NONE = 0,
-  NOEMAIL = 1,
+  NOUSERNAME = 1,
   NOPASSWORD = 2,
   INCORRECT = 3,
   SESSIONEND = 4,
@@ -26,7 +27,7 @@ export enum AuthError {
 export type State = {
   auth: AuthStatus
   authError: AuthError
-  email: string
+  username: string
   password: string
   mode: Mode
   newentry: string
@@ -35,77 +36,69 @@ export type State = {
   editingInput: string
 }
 
-export const init: Action = _ => [
-  {
-    auth: AuthStatus.CHECKING,
-    authError: AuthError.NONE,
-    email: "",
-    password: "",
-    mode: "normal",
-    newentry: "",
-    items: [],
-    editing: null,
-    editingInput: "",
-  },
-  [checkLogin, { callback: CheckLoginResult }],
-  focuser(".newentry__input"),
-]
+export const init: Action = _ => {
+  console.log("INITIALIZING - checking Login")
+  return [
+    {
+      auth: AuthStatus.CHECKING,
+      authError: AuthError.NONE,
+      username: "",
+      password: "",
+      mode: "normal",
+      newentry: "",
+      items: [],
+      editing: null,
+      editingInput: "",
+    },
+    [checkLogin, { callback: CheckLoginResult }],
+    focuser(".newentry__input"),
+  ]
+}
 export const subscriptions = (state: State) => [
-  state.auth === AuthStatus.LOGGED_IN &&
-    ([watchLogouts, { callback: WatchLogoutCallback }] as const),
+  //   state.auth === AuthStatus.LOGGED_IN &&
+  //     ([watchLogouts, { callback: WatchLogoutCallback }] as const),
   state.auth === AuthStatus.LOGGED_IN &&
     ([
       subscribeChanges,
       {
-        onInsert: RemoteInsert,
-        onUpdate: RemoteUpdate,
+        onUpsert: RemoteUpsert,
         onDelete: RemoteDelete,
       },
     ] as const),
 ]
 
-const RemoteInsert: Action<Item> = (state, item) => {
-  if (state.items.find(i => i.id === item.id)) return state
-  return { ...state, items: [...state.items, item] }
-}
-
-const RemoteUpdate: Action<Item> = (state, newerItem) => {
-  const existingItem = state.items.find(i => i.id === newerItem.id)
-  if (!existingItem) return state
-  if (
-    newerItem.name === existingItem.name &&
-    newerItem.rank === existingItem.rank &&
-    newerItem.done === existingItem.done &&
-    newerItem.postponed === existingItem.postponed &&
-    newerItem.repeating === existingItem.repeating
-  ) {
-    return state
+const RemoteUpsert: Action<Item> = (state, item) => {
+  const index = state.items.findIndex(i => i._id === item._id)
+  if (index >= 0) {
+    const items = [...state.items]
+    items[index] = item
+    return { ...state, items }
+  } else {
+    return { ...state, items: [...state.items, item] }
   }
-  const otherItems = state.items.filter(i => i.id !== newerItem.id)
-  return { ...state, items: [...otherItems, newerItem] }
 }
 
 const RemoteDelete: Action<ItemID> = (state, deletedID) => {
-  if (!state.items.find(i => i.id === deletedID)) return state
-  return { ...state, items: state.items.filter(i => i.id !== deletedID) }
+  if (!state.items.find(i => i._id === deletedID)) return state
+  return { ...state, items: state.items.filter(i => i._id !== deletedID) }
 }
 
-const WatchLogoutCallback: Action = state => ({
-  ...state,
-  auth: AuthStatus.LOGGED_OUT,
-  authError: AuthError.SESSIONEND,
-})
+// const WatchLogoutCallback: Action = state => ({
+//   ...state,
+//   auth: AuthStatus.LOGGED_OUT,
+//   authError: AuthError.SESSIONEND,
+// })
 
 const CheckLoginResult: Action<boolean> = (_, loggedIn) => {
   if (loggedIn) return LoginSuccessful
   return SetLoggedOut
 }
-
+//
 const LoadItems: Action<Item[]> = (state, items) => ({ ...state, items })
 
-export const SetEmail: Action<string> = (state, email) => ({
+export const SetUsername: Action<string> = (state, username) => ({
   ...state,
-  email,
+  username,
 })
 export const SetPassword: Action<string> = (state, password) => ({
   ...state,
@@ -114,8 +107,8 @@ export const SetPassword: Action<string> = (state, password) => ({
 
 export const LogIn: Action = state => {
   if (state.auth !== AuthStatus.LOGGED_OUT) return state
-  if (state.email === "") {
-    return { ...state, authError: AuthError.NOEMAIL }
+  if (state.username === "") {
+    return { ...state, authError: AuthError.NOUSERNAME }
   }
   if (state.password === "") {
     return { ...state, authError: AuthError.NOPASSWORD }
@@ -125,7 +118,7 @@ export const LogIn: Action = state => {
     [
       tryLogin,
       {
-        email: state.email,
+        username: state.username,
         password: state.password,
         onOK: LoginSuccessful,
         onFail: LoginFailed,
@@ -134,17 +127,19 @@ export const LogIn: Action = state => {
   ]
 }
 
-const LoginSuccessful: Action = state => [
-  {
-    ...state,
-    auth: AuthStatus.LOGGED_IN,
-    authError: AuthError.NONE,
-    password: "",
-    email: "",
-  },
-  [loadItems, { callback: LoadItems }],
-  focuser(".newentry__input"),
-]
+const LoginSuccessful: Action = state => {
+  return [
+    {
+      ...state,
+      auth: AuthStatus.LOGGED_IN,
+      authError: AuthError.NONE,
+      password: "",
+      name: "",
+    },
+    [loadItems, { callback: LoadItems }],
+    focuser(".newentry__input"),
+  ]
+}
 
 const LoginFailed: Action = state => ({
   ...state,
@@ -168,7 +163,10 @@ const SetLoggedOut: Action = state => ({
 
 export const ToggleDone: Action<Items.ItemID> = (state, id) => {
   const items = Items.toggleDone(state.items, id)
-  return [{ ...state, items, editing: null }, [pushItemChanges, items]]
+  return [
+    { ...state, items, editing: null },
+    // [pushItemChanges, items]
+  ]
 }
 
 export const StartEditing: Action<Items.ItemID> = (state, id) => ({
@@ -181,7 +179,7 @@ export const StopEditing: Action<Items.ItemID> = (state, id) => [
     ...state,
     editing: state.editing === id ? null : state.editing,
   },
-  [pushItemChanges, state.items],
+  // [pushItemChanges, state.items],
 ]
 
 export const InputEditing: Action<string> = (state, text) =>
@@ -196,7 +194,10 @@ export const InputNewEntry: Action<string> = (state, newentry) => ({
 export const AddNewItem: Action<any> = state => {
   if (!state.newentry) return state
   const items = Items.addItem(state.items, state.newentry)
-  return [{ ...state, items, newentry: "" }, [pushItemChanges, items]]
+  return [
+    { ...state, items, newentry: "" },
+    // [pushItemChanges, items]
+  ]
 }
 
 export const SetMode: Action<State["mode"]> = (state, mode) =>
@@ -210,7 +211,7 @@ export const ClearDone: Action = state => {
       items,
       editing: null,
     },
-    [pushItemChanges, items],
+    // [pushItemChanges, items],
   ]
 }
 
@@ -224,17 +225,26 @@ export const DragOver: Action<{ draggedID: ItemID; overID: ItemID }> = (
 ) => {
   if (state.mode !== "reorder") return state
   const items = Items.moveItemTo(state.items, draggedID, overID)
-  return [{ ...state, items }, [pushItemChanges, items]]
+  return [
+    { ...state, items },
+    // [pushItemChanges, items]
+  ]
 }
 
 export const Postpone: Action<ItemID> = (state, id) => {
   const items = Items.postpone(state.items, id)
-  return [{ ...state, items }, [pushItemChanges, items]]
+  return [
+    { ...state, items },
+    // [pushItemChanges, items]
+  ]
 }
 
 export const AddPostponed: Action = state => {
   const items = Items.addPostponed(state.items)
-  return [{ ...state, items }, [pushItemChanges, items]]
+  return [
+    { ...state, items },
+    // [pushItemChanges, items]
+  ]
 }
 
 export const countPostponed = (state: State) =>
@@ -242,7 +252,10 @@ export const countPostponed = (state: State) =>
 
 export const AddRepeating: Action = state => {
   const items = Items.restoreRepeating(state.items)
-  return [{ ...state, items }, [pushItemChanges, items]]
+  return [
+    { ...state, items },
+    // [pushItemChanges, items]
+  ]
 }
 
 export const countRepeating = (state: State) =>
@@ -250,7 +263,10 @@ export const countRepeating = (state: State) =>
 
 export const ToggleRepeating: Action<ItemID> = (state, id) => {
   const items = Items.toggleRepeating(state.items, id)
-  return [{ ...state, items }, [pushItemChanges, items]]
+  return [
+    { ...state, items },
+    // [pushItemChanges, items]
+  ]
 }
 
 export const isRepeating = (state: State, id: ItemID) =>

@@ -19,18 +19,17 @@ import {
   restoreRepeating,
   countClearedRepeating,
   countDone,
-  Repeating,
-  type Item,
-  type ItemID,
 } from "./items"
+
+import { Repeating, type Item, type ItemID } from "@/api/items"
 
 test("add new item to empty list", () => {
   const NAME = "foo bar baz"
   const result = addItem([], NAME)
   expect(result.length).toBe(1)
   const newItem = result[0]
-  expect(typeof newItem.id).toBe("string")
-  expect(newItem.id).toBeTruthy()
+  expect(typeof newItem._id).toBe("string")
+  expect(newItem._id).toBeTruthy()
   expect(newItem.name).toBe(NAME)
   expect(newItem.rank).toBe(RANKSTEP)
   expect(newItem.done).toBe(0)
@@ -38,9 +37,9 @@ test("add new item to empty list", () => {
 
 test("new item added to populated list", () => {
   const NEWNAME = "newname"
-  const item1 = { id: genID(), name: "foo", rank: 30000, done: 0 }
-  const item2 = { id: genID(), name: "bar", rank: 70000, done: 0 }
-  const item3 = { id: genID(), name: "baz", rank: 50000, done: 0 }
+  const item1 = { _id: genID(), name: "foo", rank: 30000, done: 0 }
+  const item2 = { _id: genID(), name: "bar", rank: 70000, done: 0 }
+  const item3 = { _id: genID(), name: "baz", rank: 50000, done: 0 }
   const omaxrank = 70000
   const olist = [item1, item2, item3] as Item[]
   const nlist = addItem(olist, NEWNAME)
@@ -56,9 +55,9 @@ test("toggle done item", () => {
   list = addItem(list, "foo")
   list = addItem(list, "bar")
   list = addItem(list, "baz")
-  const fooID = list.find(i => i.name === "foo")!.id
-  const barID = list.find(i => i.name === "bar")!.id
-  const bazID = list.find(i => i.name === "baz")!.id
+  const fooID = list.find(i => i.name === "foo")!._id
+  const barID = list.find(i => i.name === "bar")!._id
+  const bazID = list.find(i => i.name === "baz")!._id
   list = toggleDone(list, barID)
   expect(getByID(list, barID)!.done).toBeGreaterThan(0)
   list = toggleDone(list, fooID)
@@ -74,9 +73,9 @@ test("toggle done ranks done items in order of last done first", () => {
   list = addItem(list, "foo")
   list = addItem(list, "bar")
   list = addItem(list, "baz")
-  const fooID = list.find(i => i.name === "foo")!.id
-  const barID = list.find(i => i.name === "bar")!.id
-  const bazID = list.find(i => i.name === "baz")!.id
+  const fooID = list.find(i => i.name === "foo")!._id
+  const barID = list.find(i => i.name === "bar")!._id
+  const bazID = list.find(i => i.name === "baz")!._id
   list = toggleDone(list, barID)
   list = toggleDone(list, fooID)
   list = toggleDone(list, bazID)
@@ -89,9 +88,9 @@ test("toggle done back to undone restores original rank", () => {
   list = addItem(list, "foo")
   list = addItem(list, "bar")
   list = addItem(list, "baz")
-  const fooID = list.find(i => i.name === "foo")!.id
-  const barID = list.find(i => i.name === "bar")!.id
-  const bazID = list.find(i => i.name === "baz")!.id
+  const fooID = list.find(i => i.name === "foo")!._id
+  const barID = list.find(i => i.name === "bar")!._id
+  const bazID = list.find(i => i.name === "baz")!._id
   list = toggleDone(list, barID)
   list = toggleDone(list, fooID)
   list = toggleDone(list, bazID)
@@ -107,7 +106,7 @@ test("move to self", () => {
   list = addItem(list, "foo")
   list = addItem(list, "bar")
   list = addItem(list, "baz")
-  const itemID = list.find(i => i.name === "bar")!.id
+  const itemID = list.find(i => i.name === "bar")!._id
   list = moveItemTo(list, itemID, itemID)
   expect(list).toBe(list)
 })
@@ -116,8 +115,8 @@ test("two items - move top down", () => {
   let list: Item[] = []
   list = addItem(list, "foo")
   list = addItem(list, "bar")
-  const topID = list.find(i => i.name === "bar")!.id
-  const bottomID = list.find(i => i.name === "foo")!.id
+  const topID = list.find(i => i.name === "bar")!._id
+  const bottomID = list.find(i => i.name === "foo")!._id
   list = moveItemTo(list, topID, bottomID)
   expect(byRank(list).map(i => i.name)).toEqual(["foo", "bar"])
 })
@@ -126,8 +125,8 @@ test("two items - move bottom up", () => {
   let list: Item[] = []
   list = addItem(list, "foo")
   list = addItem(list, "bar")
-  const topID = list.find(i => i.name === "bar")!.id
-  const bottomID = list.find(i => i.name === "foo")!.id
+  const topID = list.find(i => i.name === "bar")!._id
+  const bottomID = list.find(i => i.name === "foo")!._id
   list = moveItemTo(list, bottomID, topID)
   expect(byRank(list).map(i => i.name)).toEqual(["foo", "bar"])
 })
@@ -135,31 +134,31 @@ test("two items - move bottom up", () => {
 test("long list move middle to top", () => {
   let list: Item[] = []
   list = addItem(list, "ten")
-  const tenID = list.find(i => i.name === "ten")!.id
+  const tenID = list.find(i => i.name === "ten")!._id
   list = addItem(list, "nine")
-  const nineID = list.find(i => i.name === "nine")!.id
+  const nineID = list.find(i => i.name === "nine")!._id
   list = addItem(list, "eight")
-  const eightID = list.find(i => i.name === "eight")!.id
+  const eightID = list.find(i => i.name === "eight")!._id
   list = addItem(list, "seven")
-  const sevenID = list.find(i => i.name === "seven")!.id
+  const sevenID = list.find(i => i.name === "seven")!._id
   list = addItem(list, "six")
-  const sixID = list.find(i => i.name === "six")!.id
+  const sixID = list.find(i => i.name === "six")!._id
   list = addItem(list, "five")
-  const fiveID = list.find(i => i.name === "five")!.id
+  const fiveID = list.find(i => i.name === "five")!._id
   list = addItem(list, "four")
-  const fourID = list.find(i => i.name === "four")!.id
+  const fourID = list.find(i => i.name === "four")!._id
   list = addItem(list, "three")
-  const threeID = list.find(i => i.name === "three")!.id
+  const threeID = list.find(i => i.name === "three")!._id
   list = addItem(list, "two")
-  const twoID = list.find(i => i.name === "two")!.id
+  const twoID = list.find(i => i.name === "two")!._id
   list = addItem(list, "one")
-  const oneID = list.find(i => i.name === "one")!.id
+  const oneID = list.find(i => i.name === "one")!._id
   list = toggleDone(list, tenID)
   list = toggleDone(list, nineID)
   list = toggleDone(list, eightID)
 
   list = moveItemTo(list, fourID, oneID)
-  expect(byRank(list).map(i => i.id)).toEqual([
+  expect(byRank(list).map(i => i._id)).toEqual([
     fourID,
     oneID,
     twoID,
@@ -176,22 +175,22 @@ test("long list move middle to top", () => {
 test("long list move middle to bottom", () => {
   let list: Item[] = []
   list = addItem(list, "seven")
-  const sevenID = list.find(i => i.name === "seven")!.id
+  const sevenID = list.find(i => i.name === "seven")!._id
   list = addItem(list, "six")
-  const sixID = list.find(i => i.name === "six")!.id
+  const sixID = list.find(i => i.name === "six")!._id
   list = addItem(list, "five")
-  const fiveID = list.find(i => i.name === "five")!.id
+  const fiveID = list.find(i => i.name === "five")!._id
   list = addItem(list, "four")
-  const fourID = list.find(i => i.name === "four")!.id
+  const fourID = list.find(i => i.name === "four")!._id
   list = addItem(list, "three")
-  const threeID = list.find(i => i.name === "three")!.id
+  const threeID = list.find(i => i.name === "three")!._id
   list = addItem(list, "two")
-  const twoID = list.find(i => i.name === "two")!.id
+  const twoID = list.find(i => i.name === "two")!._id
   list = addItem(list, "one")
-  const oneID = list.find(i => i.name === "one")!.id
+  const oneID = list.find(i => i.name === "one")!._id
 
   list = moveItemTo(list, fourID, sevenID)
-  expect(byRank(list).map(i => i.id)).toEqual([
+  expect(byRank(list).map(i => i._id)).toEqual([
     oneID,
     twoID,
     threeID,
@@ -205,31 +204,31 @@ test("long list move middle to bottom", () => {
 test("long list move middle up", () => {
   let list: Item[] = []
   list = addItem(list, "ten")
-  const tenID = list.find(i => i.name === "ten")!.id
+  const tenID = list.find(i => i.name === "ten")!._id
   list = addItem(list, "nine")
-  const nineID = list.find(i => i.name === "nine")!.id
+  const nineID = list.find(i => i.name === "nine")!._id
   list = addItem(list, "eight")
-  const eightID = list.find(i => i.name === "eight")!.id
+  const eightID = list.find(i => i.name === "eight")!._id
   list = addItem(list, "seven")
-  const sevenID = list.find(i => i.name === "seven")!.id
+  const sevenID = list.find(i => i.name === "seven")!._id
   list = addItem(list, "six")
-  const sixID = list.find(i => i.name === "six")!.id
+  const sixID = list.find(i => i.name === "six")!._id
   list = addItem(list, "five")
-  const fiveID = list.find(i => i.name === "five")!.id
+  const fiveID = list.find(i => i.name === "five")!._id
   list = addItem(list, "four")
-  const fourID = list.find(i => i.name === "four")!.id
+  const fourID = list.find(i => i.name === "four")!._id
   list = addItem(list, "three")
-  const threeID = list.find(i => i.name === "three")!.id
+  const threeID = list.find(i => i.name === "three")!._id
   list = addItem(list, "two")
-  const twoID = list.find(i => i.name === "two")!.id
+  const twoID = list.find(i => i.name === "two")!._id
   list = addItem(list, "one")
-  const oneID = list.find(i => i.name === "one")!.id
+  const oneID = list.find(i => i.name === "one")!._id
   list = toggleDone(list, tenID)
   list = toggleDone(list, nineID)
   list = toggleDone(list, eightID)
 
   list = moveItemTo(list, fourID, threeID)
-  expect(byRank(list).map(i => i.id)).toEqual([
+  expect(byRank(list).map(i => i._id)).toEqual([
     oneID,
     twoID,
     fourID,
@@ -246,31 +245,31 @@ test("long list move middle up", () => {
 test("long list move middle down", () => {
   let list: Item[] = []
   list = addItem(list, "ten")
-  const tenID = list.find(i => i.name === "ten")!.id
+  const tenID = list.find(i => i.name === "ten")!._id
   list = addItem(list, "nine")
-  const nineID = list.find(i => i.name === "nine")!.id
+  const nineID = list.find(i => i.name === "nine")!._id
   list = addItem(list, "eight")
-  const eightID = list.find(i => i.name === "eight")!.id
+  const eightID = list.find(i => i.name === "eight")!._id
   list = addItem(list, "seven")
-  const sevenID = list.find(i => i.name === "seven")!.id
+  const sevenID = list.find(i => i.name === "seven")!._id
   list = addItem(list, "six")
-  const sixID = list.find(i => i.name === "six")!.id
+  const sixID = list.find(i => i.name === "six")!._id
   list = addItem(list, "five")
-  const fiveID = list.find(i => i.name === "five")!.id
+  const fiveID = list.find(i => i.name === "five")!._id
   list = addItem(list, "four")
-  const fourID = list.find(i => i.name === "four")!.id
+  const fourID = list.find(i => i.name === "four")!._id
   list = addItem(list, "three")
-  const threeID = list.find(i => i.name === "three")!.id
+  const threeID = list.find(i => i.name === "three")!._id
   list = addItem(list, "two")
-  const twoID = list.find(i => i.name === "two")!.id
+  const twoID = list.find(i => i.name === "two")!._id
   list = addItem(list, "one")
-  const oneID = list.find(i => i.name === "one")!.id
+  const oneID = list.find(i => i.name === "one")!._id
   list = toggleDone(list, tenID)
   list = toggleDone(list, nineID)
   list = toggleDone(list, eightID)
 
   list = moveItemTo(list, fourID, fiveID)
-  expect(byRank(list).map(i => i.id)).toEqual([
+  expect(byRank(list).map(i => i._id)).toEqual([
     oneID,
     twoID,
     threeID,
@@ -287,16 +286,16 @@ test("long list move middle down", () => {
 test("cannot move to done items", () => {
   let list: Item[] = []
   list = addItem(list, "ten")
-  const tenID = list.find(i => i.name === "ten")!.id
+  const tenID = list.find(i => i.name === "ten")!._id
   list = addItem(list, "nine")
-  const nineID = list.find(i => i.name === "nine")!.id
+  const nineID = list.find(i => i.name === "nine")!._id
   list = addItem(list, "eight")
-  const eightID = list.find(i => i.name === "eight")!.id
+  const eightID = list.find(i => i.name === "eight")!._id
   list = addItem(list, "seven")
   list = addItem(list, "six")
   list = addItem(list, "five")
   list = addItem(list, "four")
-  const fourID = list.find(i => i.name === "four")!.id
+  const fourID = list.find(i => i.name === "four")!._id
   list = addItem(list, "three")
   list = addItem(list, "two")
   list = addItem(list, "one")
@@ -312,16 +311,16 @@ test("cannot move to done items", () => {
 test("cannot move done items to not done", () => {
   let list: Item[] = []
   list = addItem(list, "ten")
-  const tenID = list.find(i => i.name === "ten")!.id
+  const tenID = list.find(i => i.name === "ten")!._id
   list = addItem(list, "nine")
-  const nineID = list.find(i => i.name === "nine")!.id
+  const nineID = list.find(i => i.name === "nine")!._id
   list = addItem(list, "eight")
-  const eightID = list.find(i => i.name === "eight")!.id
+  const eightID = list.find(i => i.name === "eight")!._id
   list = addItem(list, "seven")
   list = addItem(list, "six")
   list = addItem(list, "five")
   list = addItem(list, "four")
-  const fourID = list.find(i => i.name === "four")!.id
+  const fourID = list.find(i => i.name === "four")!._id
   list = addItem(list, "three")
   list = addItem(list, "two")
   list = addItem(list, "one")
@@ -354,7 +353,7 @@ test("clear done - just one, not done", () => {
 test("clear done - just one, done", () => {
   let list: Item[] = []
   list = addItem(list, "single")
-  list = toggleDone(list, list[0].id)
+  list = toggleDone(list, list[0]._id)
   list = clearDone(list)
   expect(list.length).toBe(0)
 })
@@ -379,7 +378,7 @@ test("clear done - long list, one done", () => {
   list = addItem(list, "c")
   list = addItem(list, "b")
   list = addItem(list, "a")
-  list = toggleDone(list, list.find(i => i.name === "b")!.id)
+  list = toggleDone(list, list.find(i => i.name === "b")!._id)
   list = clearDone(list)
   expect(
     byRank(list)
@@ -394,8 +393,8 @@ test("clear done - long list, some done", () => {
   list = addItem(list, "c")
   list = addItem(list, "b")
   list = addItem(list, "a")
-  list = toggleDone(list, list.find(i => i.name === "b")!.id)
-  list = toggleDone(list, list.find(i => i.name === "c")!.id)
+  list = toggleDone(list, list.find(i => i.name === "b")!._id)
+  list = toggleDone(list, list.find(i => i.name === "c")!._id)
   list = clearDone(list)
   expect(
     byRank(list)
@@ -410,10 +409,10 @@ test("clear done - long list, all done", () => {
   list = addItem(list, "c")
   list = addItem(list, "b")
   list = addItem(list, "a")
-  list = toggleDone(list, list.find(i => i.name === "b")!.id)
-  list = toggleDone(list, list.find(i => i.name === "c")!.id)
-  list = toggleDone(list, list.find(i => i.name === "a")!.id)
-  list = toggleDone(list, list.find(i => i.name === "d")!.id)
+  list = toggleDone(list, list.find(i => i.name === "b")!._id)
+  list = toggleDone(list, list.find(i => i.name === "c")!._id)
+  list = toggleDone(list, list.find(i => i.name === "a")!._id)
+  list = toggleDone(list, list.find(i => i.name === "d")!._id)
   list = clearDone(list)
   expect(list.length).toBe(0)
 })
@@ -430,7 +429,7 @@ test("remove - that doesnt exist ", () => {
 test("remove from single list", () => {
   let list: Item[] = []
   list = addItem(list, "foo")
-  list = removeItem(list, list[0].id)
+  list = removeItem(list, list[0]._id)
   expect(list.length).toBe(0)
 })
 
@@ -441,7 +440,7 @@ test("remove from long list", () => {
   list = addItem(list, "c")
   list = addItem(list, "b")
   list = addItem(list, "a")
-  list = removeItem(list, list.find(i => i.name === "b")!.id)
+  list = removeItem(list, list.find(i => i.name === "b")!._id)
   expect(
     byRank(list)
       .map(i => i.name)
@@ -453,8 +452,8 @@ test("set name", () => {
   let list: Item[] = []
   list = addItem(list, "bar")
   list = addItem(list, "foo")
-  const fooID = list.find(i => i.name === "foo")!.id
-  const barID = list.find(i => i.name === "bar")!.id
+  const fooID = list.find(i => i.name === "foo")!._id
+  const barID = list.find(i => i.name === "bar")!._id
   list = setItemName(list, fooID, "baz")
   list = setItemName(list, barID, "bat")
   expect(
@@ -468,8 +467,8 @@ test("set name - missing id", () => {
   let list: Item[] = []
   list = addItem(list, "bar")
   list = addItem(list, "foo")
-  const fooID = list.find(i => i.name === "foo")!.id
-  const barID = list.find(i => i.name === "bar")!.id
+  const fooID = list.find(i => i.name === "foo")!._id
+  const barID = list.find(i => i.name === "bar")!._id
   list = setItemName(list, (fooID + "zzz") as ItemID, "baz")
   list = setItemName(list, (barID + "zzz") as ItemID, "bat")
   expect(
@@ -489,12 +488,12 @@ test("rerank", () => {
   list = addItem(list, "c")
   list = addItem(list, "b")
   list = addItem(list, "a")
-  const aid = list.find(i => i.name === "a")!.id
-  const bid = list.find(i => i.name === "b")!.id
-  const cid = list.find(i => i.name === "c")!.id
-  const did = list.find(i => i.name === "d")!.id
-  const eid = list.find(i => i.name === "e")!.id
-  const fid = list.find(i => i.name === "f")!.id
+  const aid = list.find(i => i.name === "a")!._id
+  const bid = list.find(i => i.name === "b")!._id
+  const cid = list.find(i => i.name === "c")!._id
+  const did = list.find(i => i.name === "d")!._id
+  const eid = list.find(i => i.name === "e")!._id
+  const fid = list.find(i => i.name === "f")!._id
   list = moveItemTo(list, bid, eid)
   list = moveItemTo(list, cid, eid)
   list = moveItemTo(list, did, eid)
@@ -517,7 +516,7 @@ test("rerank", () => {
 test("postpone a single item", () => {
   let list: Item[] = []
   list = addItem(list, "foo")
-  const fooID = list[0].id
+  const fooID = list[0]._id
   list = addItem(list, "bar")
   list = postpone(list, fooID)
   expect(
@@ -532,9 +531,9 @@ test("cannot mark postponed items done", () => {
   list = addItem(list, "c")
   list = addItem(list, "b")
   list = addItem(list, "a")
-  const aid = list.find(i => i.name === "a")!.id
-  const bid = list.find(i => i.name === "b")!.id
-  const cid = list.find(i => i.name === "c")!.id
+  const aid = list.find(i => i.name === "a")!._id
+  const bid = list.find(i => i.name === "b")!._id
+  const cid = list.find(i => i.name === "c")!._id
   list = postpone(list, aid)
   list = postpone(list, bid)
   list = postpone(list, cid)
@@ -557,9 +556,9 @@ test("cannot postpone done items", () => {
   list = addItem(list, "c")
   list = addItem(list, "b")
   list = addItem(list, "a")
-  const aid = list.find(i => i.name === "a")!.id
-  const bid = list.find(i => i.name === "b")!.id
-  const cid = list.find(i => i.name === "c")!.id
+  const aid = list.find(i => i.name === "a")!._id
+  const bid = list.find(i => i.name === "b")!._id
+  const cid = list.find(i => i.name === "c")!._id
   list = toggleDone(list, aid)
   list = toggleDone(list, bid)
   list = toggleDone(list, cid)
@@ -586,12 +585,12 @@ test("postpone and restore", () => {
   list = addItem(list, "c")
   list = addItem(list, "b")
   list = addItem(list, "a")
-  const aid = list.find(i => i.name === "a")!.id
-  const bid = list.find(i => i.name === "b")!.id
-  const cid = list.find(i => i.name === "c")!.id
-  const did = list.find(i => i.name === "d")!.id
-  const eid = list.find(i => i.name === "e")!.id
-  const fid = list.find(i => i.name === "f")!.id
+  const aid = list.find(i => i.name === "a")!._id
+  const bid = list.find(i => i.name === "b")!._id
+  const cid = list.find(i => i.name === "c")!._id
+  const did = list.find(i => i.name === "d")!._id
+  const eid = list.find(i => i.name === "e")!._id
+  const fid = list.find(i => i.name === "f")!._id
   list = postpone(list, bid)
   list = postpone(list, did)
   list = postpone(list, fid)
@@ -646,9 +645,9 @@ test("count postponed", () => {
   list = addItem(list, "c")
   list = addItem(list, "b")
   list = addItem(list, "a")
-  const bid = list.find(i => i.name === "b")!.id
-  const did = list.find(i => i.name === "d")!.id
-  const fid = list.find(i => i.name === "f")!.id
+  const bid = list.find(i => i.name === "b")!._id
+  const did = list.find(i => i.name === "d")!._id
+  const fid = list.find(i => i.name === "f")!._id
   expect(countPostponed(list)).toBe(0)
   list = postpone(list, bid)
   expect(countPostponed(list)).toBe(1)
@@ -669,10 +668,10 @@ test("repeating items can be restored", () => {
   list = addItem(list, "c")
   list = addItem(list, "b")
   list = addItem(list, "a")
-  const bid = list.find(i => i.name === "b")!.id
-  const cid = list.find(i => i.name === "c")!.id
-  const did = list.find(i => i.name === "d")!.id
-  const eid = list.find(i => i.name === "e")!.id
+  const bid = list.find(i => i.name === "b")!._id
+  const cid = list.find(i => i.name === "c")!._id
+  const did = list.find(i => i.name === "d")!._id
+  const eid = list.find(i => i.name === "e")!._id
   list = toggleRepeating(list, bid)
   list = toggleRepeating(list, cid)
   list = toggleRepeating(list, did)
@@ -750,10 +749,10 @@ test("count cleared repeating", () => {
 
   expect(countClearedRepeating(list)).toBe(0)
 
-  const aid = list.find(i => i.name === "a")!.id
-  const bid = list.find(i => i.name === "b")!.id
-  const cid = list.find(i => i.name === "c")!.id
-  const did = list.find(i => i.name === "d")!.id
+  const aid = list.find(i => i.name === "a")!._id
+  const bid = list.find(i => i.name === "b")!._id
+  const cid = list.find(i => i.name === "c")!._id
+  const did = list.find(i => i.name === "d")!._id
 
   list = toggleRepeating(list, aid)
   list = toggleRepeating(list, bid)
@@ -784,10 +783,10 @@ test.only("count done does not include cleared repeating", () => {
   list = addItem(list, "c")
   list = addItem(list, "b")
   list = addItem(list, "a")
-  const aid = list.find(i => i.name === "a")!.id
-  const bid = list.find(i => i.name === "b")!.id
-  const cid = list.find(i => i.name === "c")!.id
-  const did = list.find(i => i.name === "d")!.id
+  const aid = list.find(i => i.name === "a")!._id
+  const bid = list.find(i => i.name === "b")!._id
+  const cid = list.find(i => i.name === "c")!._id
+  const did = list.find(i => i.name === "d")!._id
   list = toggleRepeating(list, aid)
   list = toggleRepeating(list, bid)
   list = toggleRepeating(list, cid)
