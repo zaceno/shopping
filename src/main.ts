@@ -1,6 +1,12 @@
 import { type Action as HpAction } from "hyperapp"
 import focuser from "@/lib/focuser"
-import { checkLogin, tryLogin, doLogout } from "@/api/auth"
+import {
+  checkLogin,
+  tryLogin,
+  doLogout,
+  type SessionState,
+} from "@/api/auth"
+import { watchOnlineStatus } from "@/api/online"
 import { loadItems } from "@/api/items"
 import { subscribeChanges } from "@/api/changes"
 import { pushChanges } from "./api/push"
@@ -16,6 +22,7 @@ export enum AuthStatus {
   LOGGED_IN = 2,
   LOGGING_OUT = 3,
   CHECKING = 4,
+  OFFLINE = 5,
 }
 export enum AuthError {
   NONE = 0,
@@ -68,9 +75,8 @@ export const init: Action = _ => {
   ]
 }
 export const subscriptions = (state: State) => [
-  //   state.auth === AuthStatus.LOGGED_IN &&
-  //     ([watchLogouts, { callback: WatchLogoutCallback }] as const),
-  state.auth === AuthStatus.LOGGED_IN &&
+  (state.auth === AuthStatus.LOGGED_IN ||
+    state.auth === AuthStatus.OFFLINE) &&
     ([
       subscribeChanges,
       {
@@ -78,6 +84,13 @@ export const subscriptions = (state: State) => [
         onDelete: RemoteDelete,
       },
     ] as const),
+  ([
+    watchOnlineStatus,
+    {
+      onOnline: RecheckLogin,
+      onOffline: GoOffline,
+    },
+  ] as const),
 ]
 
 const RemoteUpsert: Action<Item> = (state, item) => {
@@ -102,9 +115,30 @@ const RemoteDelete: Action<ItemID> = (state, deletedID) => {
 //   authError: AuthError.SESSIONEND,
 // })
 
-const CheckLoginResult: Action<boolean> = (_, loggedIn) => {
-  if (loggedIn) return LoginSuccessful
+const CheckLoginResult: Action<SessionState> = (_, result) => {
+  if (result === "logged-in") return LoginSuccessful
+  if (result === "offline") return GoOffline
   return SetLoggedOut
+}
+
+const GoOffline: Action = state => {
+  if (
+    state.auth !== AuthStatus.LOGGED_OUT &&
+    state.auth !== AuthStatus.CHECKING &&
+    state.auth !== AuthStatus.LOGGING_IN
+  ) {
+    return state
+  }
+  return [
+    { ...state, auth: AuthStatus.OFFLINE, authError: AuthError.NONE },
+    [loadItems, { callback: LoadItems }],
+    focuser(".newentry__input"),
+  ]
+}
+
+const RecheckLogin: Action = state => {
+  if (state.auth !== AuthStatus.OFFLINE) return state
+  return [state, [checkLogin, { callback: CheckLoginResult }]]
 }
 //
 const LoadItems: Action<Item[]> = (state, items) => ({ ...state, items })

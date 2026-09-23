@@ -56,21 +56,30 @@ export async function doLogout<S>(
   dispatch(options.onDone)
 }
 
+export type SessionState = "logged-in" | "logged-out" | "offline"
+
 export async function checkLogin<S>(
   dispatch: Dispatch<S>,
   options: {
-    callback: Action<S, boolean>
+    callback: Action<S, SessionState>
   },
 ) {
-  let sessionExists: boolean
+  let sessionState: SessionState = "offline"
   try {
     const response = await fetch("/db/_session", {
       credentials: "include",
     })
-    const session = await response.json()
-    sessionExists = !!session?.userCtx?.name
+    const session = (await response.json()) as {
+      userCtx?: { name?: string | null }
+    }
+    // Only trust a real CouchDB _session payload. A proxy that can't reach the
+    // backend answers with a non-JSON error page, which means we're effectively
+    // offline even though the fetch itself resolved.
+    if (response.ok && session?.userCtx) {
+      sessionState = session.userCtx.name ? "logged-in" : "logged-out"
+    }
   } catch {
-    sessionExists = false
+    sessionState = "offline"
   }
-  dispatch(options.callback, sessionExists)
+  dispatch(options.callback, sessionState)
 }

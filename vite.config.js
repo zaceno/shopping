@@ -12,6 +12,13 @@ export default defineConfig(({ mode }) => {
         "/db": {
           target: env.DB_HOST,
           changeOrigin: true,
+          configure: proxy => {
+            // Backend unreachable (e.g. offline): drop the connection so the
+            // client sees a network error instead of a proxy 500 HTML page.
+            proxy.on("error", (_err, req) => {
+              req.socket.destroy()
+            })
+          },
         },
       },
     },
