@@ -228,10 +228,10 @@ export const StopEditing: Action<Items.ItemID> = withItemChanges(
   }),
 )
 
-export const InputEditing: Action<string> = (state, text) =>
+export const InputEditing: Action<string> = withItemChanges((state, text) =>
   !state.editing
     ? state
-    : { ...state, items: Items.setItemName(state.items, state.editing, text) }
+    : { ...state, items: Items.setItemName(state.items, state.editing, text) })
 
 export const InputNewEntry: Action<string> = (state, newentry) => ({
   ...state,
